@@ -27,9 +27,8 @@ interface IQVData {
   iqv_humidity: number;
   iqv_trend: number;
   iqv_overall: number;
-  latitude?: number;
-  longitude?: number;
-  
+  latitude: number; 
+  longitude: number; 
 }
 
 const AppContent = () => {
@@ -190,7 +189,7 @@ const AppContent = () => {
   ];
 
   // Dados para o mapa
-  const cityData = data && data.longitude !== undefined && data.latitude !== undefined ? {
+  const cityData = data ? {
   longitude: data.longitude,
   latitude: data.latitude,
   iqv: data.iqv_overall,

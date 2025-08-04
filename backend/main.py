@@ -103,9 +103,7 @@ def calculate_iqv(temperature: float, humidity: float, traffic_delay: float = 0)
          response_description="Dados do IQV calculados com sucesso",
          tags=["IQV"])
 async def get_iqv(city: str):
-    """
-    Endpoint para obter o Índice de Qualidade de Vida (IQV) para uma cidade específica.
-    """
+    
     logger.info(f"Recebida solicitação para cidade: {city}")
     
     try:
@@ -139,6 +137,8 @@ async def get_iqv(city: str):
             "description": weather_data["description"],
             "humidity": weather_data["humidity"],
             "avg_traffic_delay_min": avg_traffic_delay,
+            "latitude": weather_data["latitude"],  
+            "longitude": weather_data["longitude"],  
             **iqv_data
         }
         

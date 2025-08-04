@@ -4,7 +4,6 @@ import maplibregl from 'maplibre-gl';
 import type { LngLatLike } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 
-// Interface para os dados da cidade
 interface CityData {
   longitude: number;
   latitude: number;
@@ -23,15 +22,15 @@ export const MapVisualization: React.FC<MapVisualizationProps> = ({ cityData, da
   const map = useRef<maplibregl.Map | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
+  
   // Coordenadas padrão para quando não há dados ou são inválidas
   const defaultCoordinates: LngLatLike = [-46.633309, -23.55052]; // São Paulo
-
+  
   // Função para validar coordenadas
   const isValidCoordinate = (coord: number | undefined): coord is number => {
     return coord !== undefined && !isNaN(coord) && isFinite(coord);
   };
-
+  
   // Obtém coordenadas válidas
   const getValidCoordinates = (): LngLatLike => {
     if (cityData && 
@@ -41,7 +40,7 @@ export const MapVisualization: React.FC<MapVisualizationProps> = ({ cityData, da
     }
     return defaultCoordinates;
   };
-
+  
   // Verifica se as coordenadas são válidas
   const isValidCoordinates = (coords: LngLatLike): boolean => {
     if (Array.isArray(coords)) {
@@ -51,39 +50,35 @@ export const MapVisualization: React.FC<MapVisualizationProps> = ({ cityData, da
              isFinite(coords[0]) && 
              isFinite(coords[1]);
     } else {
-      // Para objetos do tipo { lng: number, lat: number }
-      const lng = (coords as any).lng !== undefined ? (coords as any).lng : (coords as any).lon;
-      const lat = (coords as any).lat;
-      
-      return lng !== undefined && 
-             lat !== undefined &&
-             typeof lng === 'number' &&
-             typeof lat === 'number' &&
-             isFinite(lng) && 
-             isFinite(lat);
+      return (coords as any).lng !== undefined && 
+             (coords as any).lat !== undefined &&
+             typeof (coords as any).lng === 'number' &&
+             typeof (coords as any).lat === 'number' &&
+             isFinite((coords as any).lng) && 
+             isFinite((coords as any).lat);
     }
   };
-
+  
   useEffect(() => {
     // Configuração do estilo do mapa baseado no modo escuro
     const getMapStyle = () => {
       return 'https://demotiles.maplibre.org/style.json';
     };
-
+    
     // Inicializa o mapa
     const initializeMap = () => {
       try {
         // Evita inicializar múltiplas vezes
         if (map.current) return;
-
+        
         // Obtém coordenadas válidas
         const coordinates = getValidCoordinates();
-
+        
         // Valida se as coordenadas são válidas antes de criar o mapa
         if (!coordinates || !isValidCoordinates(coordinates)) {
           throw new Error('Coordenadas inválidas');
         }
-
+        
         // Cria a instância do mapa
         map.current = new maplibregl.Map({
           container: mapContainer.current!,
@@ -92,10 +87,10 @@ export const MapVisualization: React.FC<MapVisualizationProps> = ({ cityData, da
           zoom: 12,
           attributionControl: false
         });
-
+        
         // Adiciona controles de navegação
         map.current.addControl(new maplibregl.NavigationControl(), 'top-right');
-
+        
         // Adiciona uma camada de dados quando o mapa estiver carregado
         map.current.on('load', () => {
           setMapLoaded(true);
@@ -135,7 +130,7 @@ export const MapVisualization: React.FC<MapVisualizationProps> = ({ cityData, da
                 }]
               }
             });
-
+            
             map.current!.addLayer({
               id: 'iqv-heatmap',
               type: 'heatmap',
@@ -184,24 +179,23 @@ export const MapVisualization: React.FC<MapVisualizationProps> = ({ cityData, da
             });
           }
         });
-
+        
         // Tratamento de erros
         map.current.on('error', (e) => {
           setError(`Erro ao carregar o mapa: ${e.error.message}`);
           console.error('Map error:', e.error);
         });
-
       } catch (err) {
         setError('Falha ao inicializar o mapa. Verifique se o navegador suporta WebGL.');
         console.error('Map initialization error:', err);
       }
     };
-
+    
     // Inicializa o mapa apenas quando o container estiver disponível
     if (mapContainer.current && !map.current) {
       initializeMap();
     }
-
+    
     // Limpeza ao desmontar o componente
     return () => {
       if (map.current) {
@@ -210,15 +204,14 @@ export const MapVisualization: React.FC<MapVisualizationProps> = ({ cityData, da
       }
     };
   }, [cityData, darkMode]);
-
+  
   // Atualiza o mapa quando o modo escuro muda
   useEffect(() => {
     if (!map.current || !mapLoaded) return;
-    
     // Recarrega o estilo do mapa
     map.current.setStyle('https://demotiles.maplibre.org/style.json');
   }, [darkMode, mapLoaded]);
-
+  
   // Mostra mensagem de carregamento
   if (!cityData) {
     return (
@@ -252,7 +245,7 @@ export const MapVisualization: React.FC<MapVisualizationProps> = ({ cityData, da
       </div>
     );
   }
-
+  
   // Mostra erro se houver
   if (error) {
     return (
@@ -287,7 +280,7 @@ export const MapVisualization: React.FC<MapVisualizationProps> = ({ cityData, da
       </div>
     );
   }
-
+  
   return (
     <div style={{
       height: '400px',
@@ -305,7 +298,6 @@ export const MapVisualization: React.FC<MapVisualizationProps> = ({ cityData, da
           height: '100%' 
         }} 
       />
-      
       {/* Legenda do heatmap */}
       <div style={{
         position: 'absolute',

@@ -41,8 +41,8 @@ def get_weather_data(city: str) -> dict:
         return {
             "city": city,
             "country": country,
-            "latitude": lat,
-            "longitude": lon,
+            "latitude": lat,      # Adicione esta linha
+            "longitude": lon,     # Adicione esta linha
             "temperature": weather_data["main"]["temp"],
             "description": weather_data["weather"][0]["description"],
             "humidity": weather_data["main"]["humidity"],

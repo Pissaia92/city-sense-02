@@ -4,9 +4,10 @@ export interface ForecastPoint {
   temp: number;
   condition: string;
 }
-export interface IQVData {
-  iqv_trend: any;
-  value: number;
+export interface ForecastPoint {
+  date: string;
+  temperature: number;
   description: string;
-  timestamp: string;
+  minTemperature: number;
+  maxTemperature: number;
 }

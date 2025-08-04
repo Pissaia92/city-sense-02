@@ -80,69 +80,69 @@ const ForecastChart: React.FC<ForecastChartProps> = ({ data, darkMode }) => {
   };
 
   const options = {
-    maintainAspectRatio: false,
-    responsive: true,
-    plugins: {
-      legend: {
-        display: true,
-        position: 'top',
-        labels: {
-          color: darkMode ? '#cbd5e1' : '#1e293b'
-        }
-      },
+  maintainAspectRatio: false,
+  responsive: true,
+  plugins: {
+    legend: {
+      display: true,
+      position: 'top' as const, // Adicione 'as const'
+      labels: {
+        color: darkMode ? '#cbd5e1' : '#1e293b'
+      }
+    },
       tooltip: {
-        mode: 'index',
-        intersect: false,
-        backgroundColor: darkMode ? '#1e293b' : '#ffffff',
-        titleColor: darkMode ? '#cbd5e1' : '#1e293b',
-        bodyColor: darkMode ? '#cbd5e1' : '#1e293b',
-        borderColor: darkMode ? '#334155' : '#e2e8f0',
-        borderWidth: 1,
-        callbacks: {
-          label: (context: any) => {
-            const datasetLabel = context.dataset.label || '';
-            if (datasetLabel === 'Temperatura Média') {
-              return `${context.parsed.y.toFixed(1)}°C`;
-            } else if (datasetLabel === 'Temperatura Mínima') {
-              return `Min: ${context.parsed.y.toFixed(1)}°C`;
-            } else if (datasetLabel === 'Temperatura Máxima') {
-              return `Max: ${context.parsed.y.toFixed(1)}°C`;
-            }
-            return '';
+      mode: 'index' as const, // Adicione 'as const'
+      intersect: false,
+      backgroundColor: darkMode ? '#1e293b' : '#ffffff',
+      titleColor: darkMode ? '#cbd5e1' : '#1e293b',
+      bodyColor: darkMode ? '#cbd5e1' : '#1e293b',
+      borderColor: darkMode ? '#334155' : '#e2e8f0',
+      borderWidth: 1,
+         callbacks: {
+        label: (context: any) => {
+          const datasetLabel = context.dataset.label || '';
+          if (datasetLabel === 'Temperatura Média') {
+            return `${context.parsed.y.toFixed(1)}°C`;
+          } else if (datasetLabel === 'Temperatura Mínima') {
+            return `Min: ${context.parsed.y.toFixed(1)}°C`;
+          } else if (datasetLabel === 'Temperatura Máxima') {
+            return `Max: ${context.parsed.y.toFixed(1)}°C`;
+          }
+          return '';
           }
         }
       }
     },
-    scales: {
-      y: {
-        title: {
-          display: true,
-          text: 'Temperatura (°C)',
-          color: darkMode ? '#cbd5e1' : '#1e293b'
-        },
-        ticks: {
-          color: darkMode ? '#94a3b8' : '#64748b',
-          callback: (value: any) => `${value}°C`
-        },
-        grid: {
-          color: darkMode ? 'rgba(203, 213, 225, 0.1)' : 'rgba(0, 0, 0, 0.1)'
-        }
+   scales: {
+    y: {
+      title: {
+        display: true,
+        text: 'Temperatura (°C)',
+        color: darkMode ? '#cbd5e1' : '#1e293b'
       },
-      x: {
-        title: {
-          display: true,
-          text: 'Data',
-          color: darkMode ? '#cbd5e1' : '#1e293b'
-        },
-        ticks: {
-          color: darkMode ? '#94a3b8' : '#64748b'
-        },
-        grid: {
-          color: darkMode ? 'rgba(203, 213, 225, 0.1)' : 'rgba(0, 0, 0, 0.1)'
-        }
+      ticks: {
+        color: darkMode ? '#94a3b8' : '#64748b',
+        callback: (value: any) => `${value}°C`
+      },
+      grid: {
+        color: darkMode ? 'rgba(203, 213, 225, 0.1)' : 'rgba(0, 0, 0, 0.1)'
+      }
+    },
+    x: {
+      title: {
+        display: true,
+        text: 'Data',
+        color: darkMode ? '#cbd5e1' : '#1e293b'
+      },
+      ticks: {
+        color: darkMode ? '#94a3b8' : '#64748b'
+      },
+      grid: {
+        color: darkMode ? 'rgba(203, 213, 225, 0.1)' : 'rgba(0, 0, 0, 0.1)'
       }
     }
-  };
+  }
+};
 
   return (
     <div style={{ 
