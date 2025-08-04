@@ -24,28 +24,67 @@ export const MapVisualization: React.FC<MapVisualizationProps> = ({ cityData, da
   const [mapLoaded, setMapLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Coordenadas padrão para quando não há dados
+  // Coordenadas padrão para quando não há dados ou são inválidas
   const defaultCoordinates: LngLatLike = [-46.633309, -23.55052]; // São Paulo
+
+  // Função para validar coordenadas
+  const isValidCoordinate = (coord: number | undefined): coord is number => {
+    return coord !== undefined && !isNaN(coord) && isFinite(coord);
+  };
+
+  // Obtém coordenadas válidas
+  const getValidCoordinates = (): LngLatLike => {
+    if (cityData && 
+        isValidCoordinate(cityData.longitude) && 
+        isValidCoordinate(cityData.latitude)) {
+      return [cityData.longitude, cityData.latitude];
+    }
+    return defaultCoordinates;
+  };
+
+  // Verifica se as coordenadas são válidas
+  const isValidCoordinates = (coords: LngLatLike): boolean => {
+    if (Array.isArray(coords)) {
+      return coords.length === 2 && 
+             typeof coords[0] === 'number' && 
+             typeof coords[1] === 'number' &&
+             isFinite(coords[0]) && 
+             isFinite(coords[1]);
+    } else {
+      // Para objetos do tipo { lng: number, lat: number }
+      const lng = (coords as any).lng !== undefined ? (coords as any).lng : (coords as any).lon;
+      const lat = (coords as any).lat;
+      
+      return lng !== undefined && 
+             lat !== undefined &&
+             typeof lng === 'number' &&
+             typeof lat === 'number' &&
+             isFinite(lng) && 
+             isFinite(lat);
+    }
+  };
 
   useEffect(() => {
     // Configuração do estilo do mapa baseado no modo escuro
     const getMapStyle = () => {
-      if (darkMode) {
-        return 'https://demotiles.maplibre.org/style.json';
-      } else {
-        return 'https://demotiles.maplibre.org/style.json';
-      }
+      return 'https://demotiles.maplibre.org/style.json';
     };
 
     // Inicializa o mapa
     const initializeMap = () => {
       try {
-        if (map.current) return; // Evita inicializar múltiplas vezes
-        
-        const coordinates = cityData 
-          ? [cityData.longitude, cityData.latitude] 
-          : defaultCoordinates;
+        // Evita inicializar múltiplas vezes
+        if (map.current) return;
 
+        // Obtém coordenadas válidas
+        const coordinates = getValidCoordinates();
+
+        // Valida se as coordenadas são válidas antes de criar o mapa
+        if (!coordinates || !isValidCoordinates(coordinates)) {
+          throw new Error('Coordenadas inválidas');
+        }
+
+        // Cria a instância do mapa
         map.current = new maplibregl.Map({
           container: mapContainer.current!,
           style: getMapStyle(),
@@ -60,6 +99,12 @@ export const MapVisualization: React.FC<MapVisualizationProps> = ({ cityData, da
         // Adiciona uma camada de dados quando o mapa estiver carregado
         map.current.on('load', () => {
           setMapLoaded(true);
+          
+          // Remove camada existente se houver
+          if (map.current!.getSource('city-iqv')) {
+            map.current!.removeLayer('iqv-heatmap');
+            map.current!.removeSource('city-iqv');
+          }
           
           // Adiciona um marcador na cidade
           if (cityData) {
@@ -152,6 +197,7 @@ export const MapVisualization: React.FC<MapVisualizationProps> = ({ cityData, da
       }
     };
 
+    // Inicializa o mapa apenas quando o container estiver disponível
     if (mapContainer.current && !map.current) {
       initializeMap();
     }
@@ -170,9 +216,7 @@ export const MapVisualization: React.FC<MapVisualizationProps> = ({ cityData, da
     if (!map.current || !mapLoaded) return;
     
     // Recarrega o estilo do mapa
-    map.current.setStyle(darkMode ? 
-      'https://demotiles.maplibre.org/style.json' : 
-      'https://demotiles.maplibre.org/style.json');
+    map.current.setStyle('https://demotiles.maplibre.org/style.json');
   }, [darkMode, mapLoaded]);
 
   // Mostra mensagem de carregamento

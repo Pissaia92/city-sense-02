@@ -1,7 +1,7 @@
 // frontend/src/App.tsx
 import React, { useState, useEffect, useContext } from 'react';
 import type { ForecastPoint } from './components/Types/types';
-import { ForecastChart } from './components/ForecastChart';
+import ForecastChart from './components/ForecastChart'; 
 import { DateTime } from 'luxon';
 import { Header } from './components/layout/Header';
 import { SearchBar } from './components/search/SearchBar';
@@ -27,9 +27,19 @@ interface IQVData {
   iqv_humidity: number;
   iqv_trend: number;
   iqv_overall: number;
+  latitude?: number;
+  longitude?: number;
+  
 }
 
 const AppContent = () => {
+  const [mlPrediction, setMLPrediction] = useState<{
+  predicted_iqv: number;
+  current_temperature: number;
+  current_humidity: number;
+  current_traffic_delay: number;
+  timestamp: string;
+} | null>(null);
   const { darkMode, toggleDarkMode } = useContext(ThemeContext);
   const [data, setData] = useState<IQVData | null>(null);
   const [loading, setLoading] = useState(false);
@@ -40,6 +50,13 @@ const AppContent = () => {
   const [forecast, setForecast] = useState<ForecastPoint[] | null>(null);
   const [searchTried, setSearchTried] = useState(false);
   const [showMap, setShowMap] = useState(true);
+  const getIQVColor = (iqv: number, darkMode: boolean) => {
+  if (iqv >= 8) return darkMode ? '#10b981' : '#047857'; // Verde
+  if (iqv >= 6) return darkMode ? '#84cc16' : '#65a30d'; // Amarelo-Verde
+  if (iqv >= 4) return darkMode ? '#eab308' : '#ca8a04'; // Amarelo
+  if (iqv >= 2) return darkMode ? '#f97316' : '#c2410c'; // Laranja
+  return darkMode ? '#ef4444' : '#b91c1c'; // Vermelho
+};
 
   // Formata a data de atualização
   const dataFormatada = data
@@ -173,13 +190,35 @@ const AppContent = () => {
   ];
 
   // Dados para o mapa
-  const cityData = data ? {
-    longitude: -46.633309, // São Paulo (substitua por dados reais)
-    latitude: -23.55052,
-    iqv: data.iqv_overall,
-    city: data.city,
-    country: data.country
-  } : null;
+  const cityData = data && data.longitude !== undefined && data.latitude !== undefined ? {
+  longitude: data.longitude,
+  latitude: data.latitude,
+  iqv: data.iqv_overall,
+  city: data.city,
+  country: data.country
+} : null;
+
+  useEffect(() => {
+  if (city && data) {
+    const fetchMLPrediction = async () => {
+      try {
+        const response = await fetch(`/api/predict/iqv?city=${encodeURIComponent(city)}`);
+        if (response.ok) {
+          const prediction = await response.json();
+          setMLPrediction(prediction);
+        }
+      } catch (err) {
+        console.error('Erro ao buscar previsão do ML:', err);
+      }
+    };
+    
+    fetchMLPrediction();
+    
+    // Atualiza a previsão a cada 30 minutos
+    const interval = setInterval(fetchMLPrediction, 1800000);
+    return () => clearInterval(interval);
+  }
+}, [city, data]);
 
   return (
     <>
@@ -299,58 +338,94 @@ const AppContent = () => {
             </div>
           )}
           
-          {/* Mapa da cidade */}
-          {data && !loading && !error && (
+          {data && (
+  <div style={{ 
+    marginBottom: '32px',
+    backgroundColor: darkMode ? '#1e293b' : 'white',
+    borderRadius: '12px',
+    boxShadow: darkMode ? '0 4px 6px rgba(0, 0, 0, 0.3)' : '0 4px 6px rgba(0, 0, 0, 0.05)',
+    overflow: 'hidden'
+  }}>
+    <div style={{
+      padding: '16px',
+      borderBottom: darkMode ? '1px solid #334155' : '1px solid #e2e8f0'
+    }}>
+      <h2 style={{ 
+        fontSize: '1.5rem', 
+        fontWeight: '600',
+        color: darkMode ? '#cbd5e1' : '#1e293b'
+      }}>
+        Mapa da Cidade
+      </h2>
+    </div>
+    <div style={{ padding: '16px' }}>
+      {cityData ? (
+        <MapVisualization 
+          cityData={cityData} 
+          darkMode={darkMode}
+        />
+      ) : (
+        <div style={{
+          height: '400px',
+          backgroundColor: darkMode ? '#1e293b' : '#f1f5f9',
+          borderRadius: '8px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          margin: '20px 0'
+        }}>
+          <div style={{ textAlign: 'center' }}>
             <div style={{ 
-              marginBottom: '32px',
-              backgroundColor: darkMode ? '#1e293b' : 'white',
-              borderRadius: '12px',
-              boxShadow: darkMode ? '0 4px 6px rgba(0, 0, 0, 0.3)' : '0 4px 6px rgba(0, 0, 0, 0.05)',
-              overflow: 'hidden'
+              fontSize: '2rem', 
+              marginBottom: '10px',
+              color: darkMode ? '#cbd5e1' : '#475569'
             }}>
-              <div style={{
-                padding: '16px',
-                borderBottom: darkMode ? '1px solid #334155' : '1px solid #e2e8f0',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center'
-              }}>
-                <h2 style={{ 
-                  fontSize: '1.5rem', 
-                  fontWeight: '600',
-                  color: darkMode ? '#cbd5e1' : '#1e293b'
-                }}>
-                  Mapa da Cidade
-                </h2>
-                <div>
-                  <button
-                    onClick={() => setShowMap(!showMap)}
-                    style={{
-                      backgroundColor: darkMode ? '#334155' : '#e2e8f0',
-                      border: 'none',
-                      padding: '6px 12px',
-                      borderRadius: '6px',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s ease'
-                    }}
-                  >
-                    {showMap ? 'Ocultar Mapa' : 'Mostrar Mapa'}
-                  </button>
-                </div>
-              </div>
-              {showMap && (
-                <div style={{ padding: '16px' }}>
-                  <MapVisualization 
-                    cityData={cityData} 
-                    darkMode={darkMode}
-                  />
-                </div>
-              )}
+              🌍
             </div>
-          )}
-          
-          {/* Previsão do tempo */}
-          {forecast && (
+            <h3 style={{ 
+              color: darkMode ? '#cbd5e1' : '#475569',
+              marginBottom: '8px'
+            }}>
+              Mapa da Cidade
+            </h3>
+            <p style={{ color: darkMode ? '#94a3b8' : '#64748b' }}>
+              Selecione uma cidade para visualizar no mapa
+            </p>
+          </div>
+        </div>
+      )}
+    </div>
+  </div>
+)}
+
+// Nova seção para o gráfico de previsão
+{forecast && forecast.length > 0 && (
+  <div style={{ 
+    marginBottom: '32px',
+    backgroundColor: darkMode ? '#1e293b' : 'white',
+    borderRadius: '12px',
+    boxShadow: darkMode ? '0 4px 6px rgba(0, 0, 0, 0.3)' : '0 4px 6px rgba(0, 0, 0, 0.05)',
+    overflow: 'hidden'
+  }}>
+    <div style={{
+      padding: '16px',
+      borderBottom: darkMode ? '1px solid #334155' : '1px solid #e2e8f0'
+    }}>
+      <h2 style={{ 
+        fontSize: '1.5rem', 
+        fontWeight: '600',
+        color: darkMode ? '#cbd5e1' : '#1e293b'
+      }}>
+        Previsão e temperatura média para os próximos 7 dias
+      </h2>
+    </div>
+    <div style={{ padding: '16px' }}>
+      <ForecastChart data={forecast} darkMode={darkMode} />
+    </div>
+  </div>
+)}
+          {/* Nova seção: Previsão do IQV com ML */}
+          {data && !loading && !error && (
             <div style={{ 
               marginBottom: '32px',
               backgroundColor: darkMode ? '#1e293b' : 'white',
@@ -367,11 +442,75 @@ const AppContent = () => {
                   fontWeight: '600',
                   color: darkMode ? '#cbd5e1' : '#1e293b'
                 }}>
-                  Previsão e temperatura média para os próximos 7 dias
+                  Previsão do IQV com Machine Learning
                 </h2>
               </div>
               <div style={{ padding: '16px' }}>
-                <ForecastChart data={forecast} darkMode={darkMode} />
+                {mlPrediction ? (
+                  <div style={{ 
+                    display: 'grid',
+                    gridTemplateColumns: '1fr 1fr',
+                    gap: '20px'
+                  }}>
+                    <div>
+                      <h3 style={{ 
+                        color: darkMode ? '#cbd5e1' : '#1e293b',
+                        marginBottom: '10px'
+                      }}>IQV Atual</h3>
+                      <div style={{ 
+                        fontSize: '2.5rem', 
+                        fontWeight: 'bold',
+                        color: getIQVColor(data.iqv_overall, darkMode)
+                      }}>
+                        {data.iqv_overall.toFixed(1)}
+                      </div>
+                    </div>
+                    <div>
+                      <h3 style={{ 
+                        color: darkMode ? '#cbd5e1' : '#1e293b',
+                        marginBottom: '10px'
+                      }}>IQV Previsto</h3>
+                      <div style={{ 
+                        fontSize: '2.5rem', 
+                        fontWeight: 'bold',
+                        color: getIQVColor(mlPrediction.predicted_iqv, darkMode)
+                      }}>
+                        {mlPrediction.predicted_iqv.toFixed(1)}
+                      </div>
+                      <p style={{ 
+                        color: darkMode ? '#94a3b8' : '#64748b',
+                        marginTop: '5px'
+                      }}>
+                        {mlPrediction.predicted_iqv > data.iqv_overall 
+                          ? "📈 Tendência positiva" 
+                          : mlPrediction.predicted_iqv < data.iqv_overall 
+                            ? "📉 Tendência negativa" 
+                            : "➡️ Estabilidade"}
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ 
+                    display: 'flex', 
+                    flexDirection: 'column', 
+                    alignItems: 'center',
+                    padding: '20px'
+                  }}>
+                    <div style={{ 
+                      fontSize: '2rem', 
+                      marginBottom: '10px',
+                      color: darkMode ? '#94a3b8' : '#64748b'
+                    }}>
+                      🤖
+                    </div>
+                    <p style={{ 
+                      color: darkMode ? '#94a3b8' : '#64748b',
+                      textAlign: 'center'
+                    }}>
+                      Processando previsão do IQV com machine learning...
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           )}

@@ -1,8 +1,8 @@
 {
   "name": "city-sense-frontend",
   "private": true,
-  "version": "0.1.0", 
-  "type": "module", 
+  "version": "0.1.0",
+  "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc -p tsconfig.json && vite build",
@@ -10,9 +10,12 @@
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",
+    "@types/chart.js": "^2.9.41",
+    "chart.js": "^4.5.0",
     "luxon": "^3.7.1",
     "maplibre-gl": "^4.0.2",
     "react": "^18.2.0",
+    "react-chartjs-2": "^5.3.0",
     "react-dom": "^18.2.0",
     "recharts": "^2.15.4"
   },

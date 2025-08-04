@@ -165,6 +165,11 @@ async def get_iqv(city: str):
          tags=["Previsão"])
 async def get_forecast(city: str):
     """
+    Endpoint para obter a previsão climática para uma cidade específica.
+    """
+    logger.info(f"Recebida solicitação de previsão para cidade: {city}")
+
+    """
     Endpoint para obter a previsão do tempo para uma cidade específica
     """
     logger.info(f"Recebida solicitação de previsão para cidade: {city}")
