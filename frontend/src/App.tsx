@@ -53,22 +53,17 @@ const AppContent = () => {
       setLoading(false);
       return;
     }
-
     try {
       setLoading(true);
       setError(null);
       setSearchTried(true);
-      
       console.log(`🔍 Buscando dados para: ${formattedCity}`);
-      
       const response = await fetch(`/api/iqv?city=${encodeURIComponent(formattedCity)}`, {
         signal: AbortSignal.timeout(10000)
       });
-
       if (!response.ok) {
         const errorData = await response.json().catch(() => null);
         const errorMessage = errorData?.detail || `Erro ${response.status}: ${response.statusText}`;
-        
         if (response.status === 404 && errorMessage.toLowerCase().includes('não encontrada')) {
           setError(`❌ Cidade "${formattedCity}" não encontrada. Verifique o nome e tente novamente.`);
         } else {
@@ -77,14 +72,12 @@ const AppContent = () => {
         setData(null);
         return;
       }
-
       const result = await response.json();
       console.log('✅ Dados recebidos:', result);
       setData(result);
       setCity(formattedCity);
     } catch (err: any) {
       console.error('🚨 Erro na busca:', err);
-      
       if (err.name === 'AbortError') {
         setError('⏳ Tempo limite excedido. Tente novamente.');
       } else if (err.message.includes('Failed to fetch')) {
@@ -101,22 +94,18 @@ const AppContent = () => {
   // Busca previsão do tempo com tratamento robusto
   const fetchForecast = async () => {
     if (!city) return;
-    
     try {
       console.log(`🌤️ Buscando previsão para: ${city}`);
       const response = await fetch(`/api/forecast?city=${encodeURIComponent(city)}`, {
         signal: AbortSignal.timeout(8000)
       });
-      
       if (!response.ok) {
         const errorData = await response.json().catch(() => null);
         const errorMessage = errorData?.detail || `Erro ${response.status}: ${response.statusText}`;
-        
         console.warn('⚠️ Previsão não disponível:', errorMessage);
         setForecast(null);
         return;
       }
-      
       const result = await response.json();
       console.log('🌤️ Previsão carregada:', result.forecast);
       setForecast(result.forecast);
@@ -132,11 +121,9 @@ const AppContent = () => {
     if (!searchTried) {
       fetchData('São Paulo');
     }
-    
     const interval = setInterval(() => {
       if (city) fetchData(city);
     }, 60000);
-    
     return () => clearInterval(interval);
   }, [city, searchTried]);
 
@@ -144,7 +131,6 @@ const AppContent = () => {
   useEffect(() => {
     if (city) {
       fetchForecast();
-      
       const interval = setInterval(fetchForecast, 300000);
       return () => clearInterval(interval);
     }
@@ -157,7 +143,6 @@ const AppContent = () => {
       setError('Por favor, insira uma cidade');
       return;
     }
-    
     setLoading(true);
     setError(null);
     await fetchData(inputCity);
@@ -185,152 +170,158 @@ const AppContent = () => {
   ];
 
   return (
-    <div style={{ 
-      fontFamily: '"Segoe UI", -apple-system, BlinkMacSystemFont, Roboto, sans-serif',
-      backgroundColor: darkMode ? '#1e293b' : '#f8fafc',
-      minHeight: '100vh',
-      padding: '20px',
-      maxWidth: '100%',
-      margin: '0 auto',
-      color: darkMode ? '#e2e8f0' : '#1e293b',
-      transition: 'background-color 0.3s ease, color 0.3s ease'
-    }}>
-      <Header 
-        data={data} 
-        city={city || 'Carregando...'} 
-        darkMode={darkMode}
-        toggleDarkMode={toggleDarkMode}
-      />
-      
-      <SearchBar
-        inputCity={inputCity}
-        showSuggestions={showSuggestions}
-        suggestedCities={suggestedCities}
-        setInputCity={setInputCity}
-        setShowSuggestions={setShowSuggestions}
-        handleSearch={handleSearch}
-        handleCitySelect={handleCitySelect}
-        isSearching={loading}
-        darkMode={darkMode}
-      />
-      
-      {/* Estado de carregamento inicial */}
-      {!searchTried && (
-        <div style={{ 
-          display: 'flex', 
-          flexDirection: 'column', 
-          alignItems: 'center', 
-          justifyContent: 'center',
-          height: '50vh',
-          backgroundColor: darkMode ? '#1e293b' : 'white',
-          borderRadius: '12px',
-          boxShadow: darkMode ? '0 4px 6px rgba(0, 0, 0, 0.3)' : '0 4px 6px rgba(0, 0, 0, 0.05)'
+    <>
+      {/* WRAPPER PARA OCUPAR 100% DA LARGURA (background nas laterais) */}
+      <div style={{ 
+        width: '100%',
+        backgroundColor: darkMode ? '#1e293b' : '#f8fafc',
+        color: darkMode ? '#e2e8f0' : '#1e293b',
+        transition: 'background-color 0.3s ease, color 0.3s ease'
+      }}>
+        {/* CONTAINER INTERNO COM LARGURA LIMITADA (conteúdo centralizado) */}
+        <div style={{
+          fontFamily: '"Segoe UI", -apple-system, BlinkMacSystemFont, Roboto, sans-serif',
+          maxWidth: '1200px',
+          width: '100%',
+          margin: '0 auto',
+          padding: '20px',
+          minHeight: '100vh'
         }}>
-          <div style={{ 
-            fontSize: '3rem', 
-            marginBottom: '16px',
-            animation: 'pulse 2s infinite'
-          }}>
-            🌍
-          </div>
-          <h2 style={{ 
-            fontSize: '1.5rem', 
-            color: darkMode ? '#cbd5e1' : '#475569',
-            marginBottom: '8px'
-          }}>
-            Carregando cidade inicial
-          </h2>
-          <p style={{ color: darkMode ? '#94a3b8' : '#64748b' }}>
-            Buscando dados para São Paulo...
-          </p>
-          <style>
-            {`@keyframes pulse { 
-              0% { opacity: 0.6; } 
-              50% { opacity: 1; } 
-              100% { opacity: 0.6; } 
-            }`}
-          </style>
-        </div>
-      )}
-      
-      {/* Estado de loading durante busca */}
-      {loading && searchTried && !data && <LoadingState darkMode={darkMode} />}
-      
-      {/* Erros */}
-      {error && (
-        <ErrorState 
-          error={error} 
-          onRetry={() => city ? fetchData(city) : fetchData(inputCity)} 
-          darkMode={darkMode}
-        />
-      )}
-      
-      {/* Dados principais */}
-      {data && !loading && !error && (
-        <div style={{ 
-          display: 'grid',
-          gridTemplateColumns: '1fr 350px',
-          gap: '24px',
-          marginBottom: '32px'
-        }}>
-          <div>
-            <CityHeader 
-              data={data} 
-              dataFormatada={dataFormatada} 
-              getWeatherIcon={() => {
-                const desc = data.description.toLowerCase();
-                if (desc.includes('chuva') || desc.includes('storm')) return '⛈️';
-                if (desc.includes('nublado') || desc.includes('cloud')) return '☁️';
-                if (desc.includes('sol') || desc.includes('clear')) return '☀️';
-                if (desc.includes('neve')) return '❄️';
-                return '🌤️';
-              }} 
+          <Header 
+            data={data} 
+            city={city || 'Carregando...'} 
+            darkMode={darkMode}
+            toggleDarkMode={toggleDarkMode}
+          />
+          <SearchBar
+            inputCity={inputCity}
+            showSuggestions={showSuggestions}
+            suggestedCities={suggestedCities}
+            setInputCity={setInputCity}
+            setShowSuggestions={setShowSuggestions}
+            handleSearch={handleSearch}
+            handleCitySelect={handleCitySelect}
+            isSearching={loading}
+            darkMode={darkMode}
+          />
+          
+          {/* Estado de carregamento inicial */}
+          {!searchTried && (
+            <div style={{ 
+              display: 'flex', 
+              flexDirection: 'column', 
+              alignItems: 'center', 
+              justifyContent: 'center',
+              height: '50vh',
+              backgroundColor: darkMode ? '#1e293b' : 'white',
+              borderRadius: '12px',
+              boxShadow: darkMode ? '0 4px 6px rgba(0, 0, 0, 0.3)' : '0 4px 6px rgba(0, 0, 0, 0.05)'
+            }}>
+              <div style={{ 
+                fontSize: '3rem', 
+                marginBottom: '16px',
+                animation: 'pulse 2s infinite'
+              }}>
+                🌍
+              </div>
+              <h2 style={{ 
+                fontSize: '1.5rem', 
+                color: darkMode ? '#cbd5e1' : '#475569',
+                marginBottom: '8px'
+              }}>
+                Carregando cidade inicial
+              </h2>
+              <p style={{ color: darkMode ? '#94a3b8' : '#64748b' }}>
+                Buscando dados para São Paulo...
+              </p>
+              <style>
+                {`@keyframes pulse { 
+                  0% { opacity: 0.6; } 
+                  50% { opacity: 1; } 
+                  100% { opacity: 0.6; } 
+                }`}
+              </style>
+            </div>
+          )}
+          
+          {/* Estado de loading durante busca */}
+          {loading && searchTried && !data && <LoadingState darkMode={darkMode} />}
+          
+          {/* Erros */}
+          {error && (
+            <ErrorState 
+              error={error} 
+              onRetry={() => city ? fetchData(city) : fetchData(inputCity)} 
               darkMode={darkMode}
             />
-            
-            <MetricsGrid data={data} formatTrafficDelay={formatTrafficDelay} darkMode={darkMode} />
-          </div>
+          )}
           
-          <div>
-            <IQVBreakdown data={data} darkMode={darkMode} />
-            <IQVTips data={data} darkMode={darkMode} />
-          </div>
+          {/* Dados principais */}
+          {data && !loading && !error && (
+            <div style={{ 
+              display: 'grid',
+              gridTemplateColumns: '1fr 350px',
+              gap: '24px',
+              marginBottom: '32px'
+            }}>
+              <div>
+                <CityHeader 
+                  data={data} 
+                  dataFormatada={dataFormatada} 
+                  getWeatherIcon={() => {
+                    const desc = data.description.toLowerCase();
+                    if (desc.includes('chuva') || desc.includes('storm')) return '⛈️';
+                    if (desc.includes('nublado') || desc.includes('cloud')) return '☁️';
+                    if (desc.includes('sol') || desc.includes('clear')) return '☀️';
+                    if (desc.includes('neve')) return '❄️';
+                    return '🌤️';
+                  }} 
+                  darkMode={darkMode}
+                />
+                <MetricsGrid data={data} formatTrafficDelay={formatTrafficDelay} darkMode={darkMode} />
+              </div>
+              <div>
+                <IQVBreakdown data={data} darkMode={darkMode} />
+                <IQVTips data={data} darkMode={darkMode} />
+              </div>
+            </div>
+          )}
+          
+          {/* Previsão do tempo */}
+          {forecast && <ForecastChart data={forecast} darkMode={darkMode} />}
+          
+          {/* Mensagem quando não há dados */}
+          {!data && searchTried && !loading && !error && (
+            <div style={{
+              textAlign: 'center',
+              padding: '40px 20px',
+              backgroundColor: darkMode ? '#1e293b' : 'white',
+              borderRadius: '12px',
+              boxShadow: darkMode ? '0 4px 6px rgba(0, 0, 0, 0.3)' : '0 4px 6px rgba(0, 0, 0, 0.05)',
+              marginTop: '24px'
+            }}>
+              <h2 style={{ 
+                fontSize: '1.5rem', 
+                color: darkMode ? '#cbd5e1' : '#1e293b',
+                marginBottom: '16px'
+              }}>
+                Nenhuma cidade selecionada
+              </h2>
+              <p style={{ 
+                color: darkMode ? '#94a3b8' : '#64748b',
+                fontSize: '1.1rem',
+                maxWidth: '600px',
+                margin: '0 auto'
+              }}>
+                Digite o nome de uma cidade no campo acima para ver sua qualidade de vida urbana
+              </p>
+            </div>
+          )}
+          
+          <Footer darkMode={darkMode} />
         </div>
-      )}
-      
-      {/* Previsão do tempo */}
-      {forecast && <ForecastChart data={forecast} darkMode={darkMode} />}
-      
-      {/* Mensagem quando não há dados */}
-      {!data && searchTried && !loading && !error && (
-        <div style={{
-          textAlign: 'center',
-          padding: '40px 20px',
-          backgroundColor: darkMode ? '#1e293b' : 'white',
-          borderRadius: '12px',
-          boxShadow: darkMode ? '0 4px 6px rgba(0, 0, 0, 0.3)' : '0 4px 6px rgba(0, 0, 0, 0.05)',
-          marginTop: '24px'
-        }}>
-          <h2 style={{ 
-            fontSize: '1.5rem', 
-            color: darkMode ? '#cbd5e1' : '#1e293b',
-            marginBottom: '16px'
-          }}>
-            Nenhuma cidade selecionada
-          </h2>
-          <p style={{ 
-            color: darkMode ? '#94a3b8' : '#64748b',
-            fontSize: '1.1rem',
-            maxWidth: '100%',
-            margin: '0 auto'
-          }}>
-            Digite o nome de uma cidade no campo acima para ver sua qualidade de vida urbana
-          </p>
-        </div>
-      )}
-      
-      <Footer darkMode={darkMode} />
-    </div>
+      </div>
+    </>
   );
 };
 
