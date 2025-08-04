@@ -1,7 +1,6 @@
 # backend/Dockerfile
-FROM python:3.10-slim
+FROM python:3.10
 
-# Define o diretório de trabalho dentro da imagem
 WORKDIR /app
 
 # Instala dependências do sistema
@@ -17,10 +16,10 @@ COPY requirements.txt .
 # Instala as dependências Python
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copia os arquivos do backend (todo o contexto)
+# Copia os arquivos do backend
 COPY . .
 
-# Expõe a porta usada pelo FastAPI
+# Expõe a porta
 EXPOSE 8000
 
 # Comando para iniciar a aplicação

@@ -1,10 +1,14 @@
+# backend/pipelines/data_processing.py
 import pandas as pd
-from datetime import datetime
-from ml.iqv_predictor import IQVPredictor
 import os
 import json
+from datetime import datetime
+import logging
+from ml.iqv_predictor import IQVPredictor
 
-# ====== IMPLEMENTAÇÕES DAS FUNÇÕES AUXILIARES ======
+logger = logging.getLogger(__name__)
+
+# Funções de serviço (simuladas para desenvolvimento)
 def get_weather_data(city: str) -> dict:
     """Stub para obter dados climáticos"""
     # Em um projeto real, isso chamaria uma API externa
@@ -37,7 +41,6 @@ def get_safety_data(city: str) -> dict:
 
 def save_to_database(city: str, data: dict):
     """Salva dados no banco de dados (stub para desenvolvimento)"""
-    # Em um projeto real, isso usaria um ORM ou conexão direta com o banco
     data_dir = os.path.join(os.path.dirname(__file__), "data")
     os.makedirs(data_dir, exist_ok=True)
     
@@ -48,17 +51,17 @@ def save_to_database(city: str, data: dict):
     with open(filepath, "w") as f:
         json.dump(data, f, indent=2)
     
-    print(f"Dados salvos em {filepath}")
+    logger.info(f"Dados salvos em {filepath}")
 
-# ====== CLASSE PRINCIPAL ======
 class DataPipeline:
     def __init__(self, city: str):
         self.city = city
         self.raw_data = {}
         self.processed_data = {}
+        self.predictor = IQVPredictor(model_path="./models/iqv_predictor.pkl")
         
     def extract(self):
-        # Extrai dados de múltiplas fontes (clima, trânsito, qualidade do ar, etc.)
+        """Extrai dados de múltiplas fontes (clima, trânsito, qualidade do ar, etc.)"""
         self.raw_data = {
             'weather': get_weather_data(self.city),
             'traffic': get_traffic_data(self.city),
@@ -68,30 +71,59 @@ class DataPipeline:
         return self
         
     def transform(self):
-        # Aplica transformações complexas com Pandas
-        df = pd.DataFrame([self.raw_data])
-        
-        # Normalização, padronização, criação de features
-        df['temp_normalized'] = (df['weather'].apply(lambda x: x['temperature']) - 22.5) / 10
-        df['humidity_score'] = 10 - abs(df['weather'].apply(lambda x: x['humidity']) - 50) / 5
-        
-        # Integração com ML - Adicione esta implementação
+        """Aplica transformações complexas com Pandas"""
         try:
-            from ml.iqv_predictor import IQVPredictor
-            predictor = IQVPredictor()
-            # Em um projeto real, usaria dados históricos para previsão
-            df['predicted_iqv'] = predictor.predict({
-                'temperature': df['weather'].iloc[0]['temperature'],
-                'humidity': df['weather'].iloc[0]['humidity'],
-                'traffic_delay': df['traffic'].iloc[0]['traffic_delay']
-            })
-        except ImportError:
-            df['predicted_iqv'] = 7.5  # Valor padrão se o ML não estiver disponível
-        
-        self.processed_data = df.to_dict('records')[0]
-        return self
-        
+            # Cria um DataFrame com os dados brutos
+            df = pd.DataFrame([{
+                'temperature': self.raw_data['weather']['temperature'],
+                'humidity': self.raw_data['weather']['humidity'],
+                'traffic_delay': self.raw_data['traffic']['traffic_delay'],
+                'aqi': self.raw_data['air_quality']['aqi'],
+                'safety_index': self.raw_data['safety']['safety_index']
+            }])
+            
+            # Normalização e criação de features
+            df['temp_normalized'] = (df['temperature'] - 22.5) / 10
+            df['humidity_score'] = 10 - abs(df['humidity'] - 50) / 5
+            df['traffic_score'] = df['traffic_delay'].apply(lambda x: max(0, min(10, 10 - x / 3)))
+            
+            # Prepara dados para o modelo
+            model_data = {
+                'temperature': float(df['temperature'].iloc[0]),
+                'humidity': float(df['humidity'].iloc[0]),
+                'traffic_delay': float(df['traffic_delay'].iloc[0]),
+                'day_of_week': datetime.now().weekday(),
+                'month': datetime.now().month
+            }
+            
+            # Faz previsão com o modelo
+            predicted_iqv = self.predictor.predict(model_data)
+            
+            # Cria dados processados
+            self.processed_data = {
+                'city': self.city,
+                'temperature': float(df['temperature'].iloc[0]),
+                'humidity': float(df['humidity'].iloc[0]),
+                'traffic_delay': float(df['traffic_delay'].iloc[0]),
+                'aqi': float(df['aqi'].iloc[0]),
+                'safety_index': float(df['safety_index'].iloc[0]),
+                'temp_normalized': float(df['temp_normalized'].iloc[0]),
+                'humidity_score': float(df['humidity_score'].iloc[0]),
+                'traffic_score': float(df['traffic_score'].iloc[0]),
+                'predicted_iqv': predicted_iqv,
+                'timestamp': datetime.now().isoformat()
+            }
+            
+            return self
+        except Exception as e:
+            logger.error(f"Erro na transformação de dados: {str(e)}")
+            raise
+            
     def load(self):
-        # Salva em banco de dados ou armazenamento
+        """Salva em banco de dados ou armazenamento"""
         save_to_database(self.city, self.processed_data)
         return self.processed_data
+    
+    def process(self):
+        """Executa todo o pipeline (extract, transform, load)"""
+        return self.extract().transform().load()

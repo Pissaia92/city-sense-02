@@ -58,33 +58,10 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-SLOWAPI_AVAILABLE = False  # ← Defina aqui, antes do try
-limiter = None
 
-try:
-    from slowapi import Limiter
-    from slowapi.util import get_remote_address
-    from slowapi.errors import RateLimitExceeded
-    from slowapi.middleware import SlowAPIMiddleware
-    
-    limiter = Limiter(key_func=get_remote_address, default_limits=["30/minute"])
-    app.state.limiter = limiter
-    app.add_middleware(SlowAPIMiddleware)
-    
-    @app.exception_handler(RateLimitExceeded)
-    async def custom_rate_limit_handler(request: Request, exc: RateLimitExceeded):
-        return Response(
-            content='{"detail": "Limite de requisições excedido. Tente novamente mais tarde."}',
-            status_code=429,
-            media_type="application/json"
-        )
-    
-    SLOWAPI_AVAILABLE = True 
-    logger.info("slowapi configurado com sucesso - rate limiting ativado")
-    
-except ImportError as e:
-    logger.warning(f"slowapi não está disponível: {str(e)}. Rate limiting desativado.")
-    SLOWAPI_AVAILABLE = False  
+# =============== CONFIGURAÇÃO DO RATE LIMITING ===============
+# Vamos remover o slowapi por problemas de compatibilidade e usar uma abordagem mais simples
+RATE_LIMITING_ENABLED = False  # Desativado por enquanto devido a problemas com Pydantic v2
 
 # =============== FUNÇÕES E ENDPOINTS ===============
 def calculate_iqv(temperature: float, humidity: float, traffic_delay: float = 0) -> Dict[str, float]:
@@ -124,18 +101,22 @@ def calculate_iqv(temperature: float, humidity: float, traffic_delay: float = 0)
          description="Retorna o Índice de Qualidade de Vida (IQV) para uma cidade específica, "
                      "considerando temperatura, umidade, trânsito e tendências climáticas.",
          response_description="Dados do IQV calculados com sucesso",
-         tags=["IQV"],)
-         
-
+         tags=["IQV"])
 async def get_iqv(city: str):
+    """
+    Endpoint para obter o Índice de Qualidade de Vida (IQV) para uma cidade específica.
+    """
     logger.info(f"Recebida solicitação para cidade: {city}")
     
-    # Normaliza o nome da cidade
-    city_normalized = normalize_city_name(city)
-    logger.info(f"Cidade normalizada: {city_normalized}")
-    
     try:
+        # Normaliza o nome da cidade
+        city_normalized = normalize_city_name(city)
+        logger.info(f"Cidade normalizada: {city_normalized}")
+        
+        # Importar o serviço aqui para evitar problemas de importação circular
         from services.weather_service import get_weather_data
+        
+        # Obter dados climáticos
         weather_data = get_weather_data(city_normalized)
         
         # Simular dados de trânsito
@@ -181,23 +162,23 @@ async def get_iqv(city: str):
          summary="Obtém a previsão climática para uma cidade",
          description="Retorna a previsão climática para os próximos 7 dias de uma cidade específica.",
          response_description="Previsão climática para os próximos 7 dias",
-         tags=["Previsão"],)
-         
+         tags=["Previsão"])
 async def get_forecast(city: str):
     """
     Endpoint para obter a previsão do tempo para uma cidade específica
     """
     logger.info(f"Recebida solicitação de previsão para cidade: {city}")
-
-    city_normalized = normalize_city_name(city)
-    logger.info(f"Cidade normalizada: {city_normalized}")
     
     try:
+        # Normaliza o nome da cidade
+        city_normalized = normalize_city_name(city)
+        logger.info(f"Cidade normalizada: {city_normalized}")
+        
         # Importar o serviço aqui para evitar problemas de importação circular
         from services.weather_service import get_forecast_data
         
         # Obter dados de previsão
-        forecast_data = get_forecast_data(city)
+        forecast_data = get_forecast_data(city_normalized)
         
         return {"forecast": forecast_data}
         
@@ -228,7 +209,6 @@ async def debug_env():
         "env_file_exists": os.path.exists(".env"),
         "current_dir": os.getcwd(),
         "env_contents": open(".env").read().strip() if os.path.exists(".env") else "NO .env FILE",
-        "slowapi_available": SLOWAPI_AVAILABLE,
         "python_version": os.popen("python --version").read().strip()
     }
 
@@ -243,17 +223,77 @@ async def health_check():
         "status": "healthy",
         "timestamp": datetime.now().isoformat(),
         "api_version": "1.0.0",
-        "environment": "development" if os.getenv("ENVIRONMENT") != "production" else "production",
-        "slowapi_available": SLOWAPI_AVAILABLE
+        "environment": "development" if os.getenv("ENVIRONMENT") != "production" else "production"
     }
-@app.get("/api/debug-query")
-async def debug_query(city: str):
-    return {
-        "original_city": city,
-        "normalized_city": normalize_city_name(city),
-        "env_has_key": bool(os.getenv("OPENWEATHER_API_KEY")),
-        "current_dir": os.getcwd()
-    }
+@app.get("/api/predict/iqv", 
+         summary="Prevê o Índice de Qualidade de Vida",
+         description="Retorna uma previsão do IQV para uma cidade específica com base em dados históricos e modelo de machine learning.",
+         response_description="Previsão do IQV calculado",
+         tags=["IQV"])
+async def predict_iqv(city: str):
+    """
+    Endpoint para obter uma previsão do Índice de Qualidade de Vida (IQV) para uma cidade específica.
+    """
+    logger.info(f"Recebida solicitação de previsão para cidade: {city}")
+    
+    try:
+        # Normaliza o nome da cidade
+        city_normalized = normalize_city_name(city)
+        logger.info(f"Cidade normalizada: {city_normalized}")
+        
+        # Processa os dados com o pipeline
+        from pipelines.data_processing import DataPipeline
+        pipeline = DataPipeline(city_normalized)
+        
+        # Executa o pipeline completo
+        processed_data = pipeline.process()
+        
+        # Prepara a resposta
+        result = {
+            "city": processed_data['city'],
+            "predicted_iqv": processed_data['predicted_iqv'],
+            "current_temperature": processed_data['temperature'],
+            "current_humidity": processed_data['humidity'],
+            "current_traffic_delay": processed_data['traffic_delay'],
+            "timestamp": processed_data['timestamp']
+        }
+        
+        logger.info(f"Previsão gerada para {city}: {result}")
+        return result
+        
+    except Exception as e:
+        logger.error(f"Erro ao gerar previsão para {city}: {str(e)}", exc_info=True)
+        raise HTTPException(
+            status_code=500,
+            detail="Erro interno ao processar a previsão"
+        )
+
+@app.get("/api/ml/status",
+         summary="Verifica o status do sistema de machine learning",
+         description="Retorna informações sobre o estado atual do modelo de machine learning.",
+         response_description="Status do sistema ML",
+         tags=["Sistema"])
+async def ml_status():
+    """Endpoint para verificar o status do sistema de machine learning"""
+    try:
+        from pipelines.data_processing import DataPipeline
+        pipeline = DataPipeline("São Paulo")  # Cidade de exemplo
+        
+        model_available = pipeline.predictor.is_model_available()
+        
+        return {
+            "ml_system": "active" if model_available else "inactive",
+            "model_available": model_available,
+            "model_path": pipeline.predictor.model_path,
+            "timestamp": datetime.now().isoformat()
+        }
+    except Exception as e:
+        logger.error(f"Erro ao verificar status do ML: {str(e)}")
+        return {
+            "ml_system": "error",
+            "error": str(e),
+            "timestamp": datetime.now().isoformat()
+        }
 
 if __name__ == "__main__":
     import uvicorn

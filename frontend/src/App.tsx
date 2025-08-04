@@ -1,3 +1,4 @@
+// frontend/src/App.tsx
 import React, { useState, useEffect, useContext } from 'react';
 import type { ForecastPoint } from './components/Types/types';
 import { ForecastChart } from './components/ForecastChart';
@@ -11,6 +12,7 @@ import { IQVBreakdown } from './components/IQVBreakdown';
 import { IQVTips } from './components/IQVTips';
 import { Footer } from './components/layout/Footer';
 import { ThemeContext, ThemeProvider } from './context/ThemeContext';
+import MapVisualization from './components/MapVisualization';
 
 interface IQVData {
   city: string;
@@ -37,6 +39,7 @@ const AppContent = () => {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [forecast, setForecast] = useState<ForecastPoint[] | null>(null);
   const [searchTried, setSearchTried] = useState(false);
+  const [showMap, setShowMap] = useState(true);
 
   // Formata a data de atualização
   const dataFormatada = data
@@ -169,23 +172,32 @@ const AppContent = () => {
     "Tokyo", "Seoul", "Beijing", "New York", "Los Angeles"
   ];
 
+  // Dados para o mapa
+  const cityData = data ? {
+    longitude: -46.633309, // São Paulo (substitua por dados reais)
+    latitude: -23.55052,
+    iqv: data.iqv_overall,
+    city: data.city,
+    country: data.country
+  } : null;
+
   return (
     <>
-      {/* WRAPPER PARA OCUPAR 100% DA LARGURA (background nas laterais) */}
+      {/* Container externo: ocupa 100% da largura (background nas laterais) */}
       <div style={{ 
         width: '100%',
         backgroundColor: darkMode ? '#1e293b' : '#f8fafc',
-        color: darkMode ? '#e2e8f0' : '#1e293b',
+        minHeight: '100vh',
         transition: 'background-color 0.3s ease, color 0.3s ease'
       }}>
-        {/* CONTAINER INTERNO COM LARGURA LIMITADA (conteúdo centralizado) */}
+        {/* Container interno: conteúdo centralizado com largura máxima */}
         <div style={{
           fontFamily: '"Segoe UI", -apple-system, BlinkMacSystemFont, Roboto, sans-serif',
           maxWidth: '1200px',
           width: '100%',
           margin: '0 auto',
           padding: '20px',
-          minHeight: '100vh'
+          color: darkMode ? '#e2e8f0' : '#1e293b'
         }}>
           <Header 
             data={data} 
@@ -287,8 +299,82 @@ const AppContent = () => {
             </div>
           )}
           
+          {/* Mapa da cidade */}
+          {data && !loading && !error && (
+            <div style={{ 
+              marginBottom: '32px',
+              backgroundColor: darkMode ? '#1e293b' : 'white',
+              borderRadius: '12px',
+              boxShadow: darkMode ? '0 4px 6px rgba(0, 0, 0, 0.3)' : '0 4px 6px rgba(0, 0, 0, 0.05)',
+              overflow: 'hidden'
+            }}>
+              <div style={{
+                padding: '16px',
+                borderBottom: darkMode ? '1px solid #334155' : '1px solid #e2e8f0',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center'
+              }}>
+                <h2 style={{ 
+                  fontSize: '1.5rem', 
+                  fontWeight: '600',
+                  color: darkMode ? '#cbd5e1' : '#1e293b'
+                }}>
+                  Mapa da Cidade
+                </h2>
+                <div>
+                  <button
+                    onClick={() => setShowMap(!showMap)}
+                    style={{
+                      backgroundColor: darkMode ? '#334155' : '#e2e8f0',
+                      border: 'none',
+                      padding: '6px 12px',
+                      borderRadius: '6px',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease'
+                    }}
+                  >
+                    {showMap ? 'Ocultar Mapa' : 'Mostrar Mapa'}
+                  </button>
+                </div>
+              </div>
+              {showMap && (
+                <div style={{ padding: '16px' }}>
+                  <MapVisualization 
+                    cityData={cityData} 
+                    darkMode={darkMode}
+                  />
+                </div>
+              )}
+            </div>
+          )}
+          
           {/* Previsão do tempo */}
-          {forecast && <ForecastChart data={forecast} darkMode={darkMode} />}
+          {forecast && (
+            <div style={{ 
+              marginBottom: '32px',
+              backgroundColor: darkMode ? '#1e293b' : 'white',
+              borderRadius: '12px',
+              boxShadow: darkMode ? '0 4px 6px rgba(0, 0, 0, 0.3)' : '0 4px 6px rgba(0, 0, 0, 0.05)',
+              overflow: 'hidden'
+            }}>
+              <div style={{
+                padding: '16px',
+                borderBottom: darkMode ? '1px solid #334155' : '1px solid #e2e8f0'
+              }}>
+                <h2 style={{ 
+                  fontSize: '1.5rem', 
+                  fontWeight: '600',
+                  color: darkMode ? '#cbd5e1' : '#1e293b'
+                }}>
+                  Previsão e temperatura média para os próximos 7 dias
+                </h2>
+              </div>
+              <div style={{ padding: '16px' }}>
+                <ForecastChart data={forecast} darkMode={darkMode} />
+              </div>
+            </div>
+          )}
           
           {/* Mensagem quando não há dados */}
           {!data && searchTried && !loading && !error && (
