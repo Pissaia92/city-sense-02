@@ -190,7 +190,7 @@ const AppContent = () => {
       backgroundColor: darkMode ? '#1e293b' : '#f8fafc',
       minHeight: '100vh',
       padding: '20px',
-      maxWidth: '1200px',
+      maxWidth: '100%',
       margin: '0 auto',
       color: darkMode ? '#e2e8f0' : '#1e293b',
       transition: 'background-color 0.3s ease, color 0.3s ease'
@@ -321,7 +321,7 @@ const AppContent = () => {
           <p style={{ 
             color: darkMode ? '#94a3b8' : '#64748b',
             fontSize: '1.1rem',
-            maxWidth: '600px',
+            maxWidth: '100%',
             margin: '0 auto'
           }}>
             Digite o nome de uma cidade no campo acima para ver sua qualidade de vida urbana
