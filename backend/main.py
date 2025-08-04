@@ -64,22 +64,19 @@ app.add_middleware(
 RATE_LIMITING_ENABLED = False  # Desativado por enquanto devido a problemas com Pydantic v2
 
 # =============== FUNÇÕES E ENDPOINTS ===============
+
 def calculate_iqv(temperature: float, humidity: float, traffic_delay: float = 0) -> Dict[str, float]:
     """
     Calcula o Índice de Qualidade de Vida (IQV) com base nos dados climáticos e de trânsito.
     """
     # Cálculo do IQV Clima (baseado em temperatura)
     temp_score = max(0, min(10, 10 - abs(temperature - 22.5) / 2.5))
-    
     # Cálculo do IQV Umidade (ideal: 40-60%)
     humidity_score = max(0, min(10, 10 - abs(humidity - 50) / 5))
-    
     # Cálculo do IQV Trânsito (ideal: 0 minutos de atraso)
     traffic_score = max(0, min(10, 10 - traffic_delay / 3))
-    
     # Cálculo do IQV Tendência 
     trend_score = 5 + (22.5 - temperature) / 5
-    
     # Cálculo do IQV Geral (média ponderada)
     iqv_overall = (
         temp_score * 0.3 + 
@@ -87,7 +84,6 @@ def calculate_iqv(temperature: float, humidity: float, traffic_delay: float = 0)
         traffic_score * 0.3 + 
         trend_score * 0.2
     )
-    
     return {
         "iqv_climate": round(temp_score, 2),
         "iqv_humidity": round(humidity_score, 2),
@@ -103,31 +99,24 @@ def calculate_iqv(temperature: float, humidity: float, traffic_delay: float = 0)
          response_description="Dados do IQV calculados com sucesso",
          tags=["IQV"])
 async def get_iqv(city: str):
-    
     logger.info(f"Recebida solicitação para cidade: {city}")
-    
     try:
         # Normaliza o nome da cidade
         city_normalized = normalize_city_name(city)
         logger.info(f"Cidade normalizada: {city_normalized}")
-        
         # Importar o serviço aqui para evitar problemas de importação circular
         from services.weather_service import get_weather_data
-        
         # Obter dados climáticos
         weather_data = get_weather_data(city_normalized)
-        
         # Simular dados de trânsito
         large_cities = ["São Paulo", "Rio de Janeiro", "New York", "London", "Tokyo"]
         avg_traffic_delay = 15.0 if weather_data["city"] in large_cities else 5.0
-        
         # Calcular IQV
         iqv_data = calculate_iqv(
             temperature=weather_data["temperature"],
             humidity=weather_data["humidity"],
             traffic_delay=avg_traffic_delay
         )
-        
         # Combinar todos os dados
         result = {
             "city": weather_data["city"],
@@ -141,10 +130,8 @@ async def get_iqv(city: str):
             "longitude": weather_data["longitude"],  
             **iqv_data
         }
-        
         logger.info(f"Dados retornados para {city}: {result}")
         return result
-        
     except ValueError as ve:
         logger.warning(f"Erro de validação para {city}: {str(ve)}")
         raise HTTPException(
@@ -168,25 +155,28 @@ async def get_forecast(city: str):
     Endpoint para obter a previsão climática para uma cidade específica.
     """
     logger.info(f"Recebida solicitação de previsão para cidade: {city}")
-
-    """
-    Endpoint para obter a previsão do tempo para uma cidade específica
-    """
-    logger.info(f"Recebida solicitação de previsão para cidade: {city}")
-    
     try:
-        # Normaliza o nome da cidade
         city_normalized = normalize_city_name(city)
-        logger.info(f"Cidade normalizada: {city_normalized}")
-        
-        # Importar o serviço aqui para evitar problemas de importação circular
+        logger.info(f"Cidade normalizada: {city_normalized}")        
         from services.weather_service import get_forecast_data
-        
         # Obter dados de previsão
         forecast_data = get_forecast_data(city_normalized)
         
+        # Adicionar ícones às previsões
+        for day in forecast_data:
+            description = day["description"].lower()
+            if "sun" in description or "clear" in description:
+                day["icon"] = "☀️"
+            elif "cloud" in description:
+                day["icon"] = "☁️"
+            elif "rain" in description:
+                day["icon"] = "⛈️"
+            elif "snow" in description:
+                day["icon"] = "❄️"
+            else:
+                day["icon"] = "🤷‍♂️"         
         return {"forecast": forecast_data}
-        
+    
     except ValueError as ve:
         logger.warning(f"Erro de validação para {city}: {str(ve)}")
         raise HTTPException(
@@ -207,7 +197,6 @@ async def debug_env():
     # Tratamento seguro para OPENWEATHER_API_KEY
     api_key = os.getenv("OPENWEATHER_API_KEY")
     api_key_preview = f"{api_key[:5]}..." if api_key else "NOT SET"
-    
     return {
         "OPENWEATHER_API_KEY_set": bool(api_key),
         "OPENWEATHER_API_KEY_preview": api_key_preview,
@@ -230,6 +219,7 @@ async def health_check():
         "api_version": "1.0.0",
         "environment": "development" if os.getenv("ENVIRONMENT") != "production" else "production"
     }
+
 @app.get("/api/predict/iqv", 
          summary="Prevê o Índice de Qualidade de Vida",
          description="Retorna uma previsão do IQV para uma cidade específica com base em dados históricos e modelo de machine learning.",
@@ -240,19 +230,15 @@ async def predict_iqv(city: str):
     Endpoint para obter uma previsão do Índice de Qualidade de Vida (IQV) para uma cidade específica.
     """
     logger.info(f"Recebida solicitação de previsão para cidade: {city}")
-    
     try:
         # Normaliza o nome da cidade
         city_normalized = normalize_city_name(city)
         logger.info(f"Cidade normalizada: {city_normalized}")
-        
         # Processa os dados com o pipeline
         from pipelines.data_processing import DataPipeline
         pipeline = DataPipeline(city_normalized)
-        
         # Executa o pipeline completo
         processed_data = pipeline.process()
-        
         # Prepara a resposta
         result = {
             "city": processed_data['city'],
@@ -262,10 +248,8 @@ async def predict_iqv(city: str):
             "current_traffic_delay": processed_data['traffic_delay'],
             "timestamp": processed_data['timestamp']
         }
-        
         logger.info(f"Previsão gerada para {city}: {result}")
         return result
-        
     except Exception as e:
         logger.error(f"Erro ao gerar previsão para {city}: {str(e)}", exc_info=True)
         raise HTTPException(
@@ -283,9 +267,7 @@ async def ml_status():
     try:
         from pipelines.data_processing import DataPipeline
         pipeline = DataPipeline("São Paulo")  # Cidade de exemplo
-        
         model_available = pipeline.predictor.is_model_available()
-        
         return {
             "ml_system": "active" if model_available else "inactive",
             "model_available": model_available,

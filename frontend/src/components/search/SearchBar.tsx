@@ -45,13 +45,13 @@ export const SearchBar: React.FC<SearchBarProps> = ({
               setShowSuggestions(true);
             }}
             onFocus={() => setShowSuggestions(true)}
-            placeholder="Digite uma cidade (ex: Nova York, Londres, Tóquio)"
+            placeholder="Digite uma cidade (ex: Nova York, Londres, Tóquio)"            
             style={{
-              width: '100%',
+              width: '600px',
               padding: '16px 20px',
               borderRadius: '16px',
               border: '1px solid #e2e8f0',
-              fontSize: '16px',
+              fontSize: '20px',
               boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)',
               transition: 'all 0.2s ease',
               outline: 'none',
@@ -117,10 +117,11 @@ export const SearchBar: React.FC<SearchBarProps> = ({
             padding: '0 24px',
             backgroundColor: isSearching ? '#cbd5e1' : '#0ea5e9',
             color: 'white',
+            width: '600px',
             border: 'none',
             borderRadius: '16px',
             height: '52px',
-            fontSize: '16px',
+            fontSize: '20px',
             fontWeight: '600',
             cursor: isSearching ? 'wait' : 'pointer',
             transition: 'background-color 0.2s',

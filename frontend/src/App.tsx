@@ -397,7 +397,6 @@ const AppContent = () => {
   </div>
 )}
 
-// Nova seção para o gráfico de previsão
 {forecast && forecast.length > 0 && (
   <div style={{ 
     marginBottom: '32px',

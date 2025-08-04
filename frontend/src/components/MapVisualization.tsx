@@ -62,7 +62,7 @@ export const MapVisualization: React.FC<MapVisualizationProps> = ({ cityData, da
   useEffect(() => {
     // Configuração do estilo do mapa baseado no modo escuro
     const getMapStyle = () => {
-      return 'https://demotiles.maplibre.org/style.json';
+      return 'https://tiles.stadiamaps.com/styles/outdoors.json';
     };
     
     // Inicializa o mapa
@@ -209,7 +209,7 @@ export const MapVisualization: React.FC<MapVisualizationProps> = ({ cityData, da
   useEffect(() => {
     if (!map.current || !mapLoaded) return;
     // Recarrega o estilo do mapa
-    map.current.setStyle('https://demotiles.maplibre.org/style.json');
+    map.current.setStyle('https://tiles.stadiamaps.com/styles/outdoors.json');
   }, [darkMode, mapLoaded]);
   
   // Mostra mensagem de carregamento

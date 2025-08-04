@@ -11,6 +11,7 @@ interface ForecastPoint {
   description: string;
   minTemperature: number;
   maxTemperature: number;
+  icon: string;
 }
 
 interface ForecastChartProps {
@@ -42,6 +43,7 @@ const ForecastChart: React.FC<ForecastChartProps> = ({ data, darkMode }) => {
         month: 'short' 
       });
     }),
+    
     datasets: [
       {
         label: 'Temperatura Média',

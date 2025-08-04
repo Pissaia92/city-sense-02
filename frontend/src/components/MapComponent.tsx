@@ -24,7 +24,7 @@ const MapComponent: React.FC<MapComponentProps> = ({ iqvData }) => {
 
     const map = new maplibregl.Map({
       container: 'map',
-      style: 'https://demotiles.maplibre.org/style.json',
+      style: 'https://tiles.stadiamaps.com/styles/outdoors.json',
       center: [-46.6333, -23.5505],
       zoom: 11
     });
