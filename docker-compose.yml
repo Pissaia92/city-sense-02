@@ -1,0 +1,33 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./backend/.env
+    volumes:
+      - ./backend/app/data:/app/data
+      - ./backend/pipelines:/app/pipelines/data
+    restart: unless-stopped
+    networks:
+      - city-sense-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:80"
+    environment:
+      VITE_API_URL: http://backend:8000
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - city-sense-network
+
+networks:
+  city-sense-network:
+    driver: bridge

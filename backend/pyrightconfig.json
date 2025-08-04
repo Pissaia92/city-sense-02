@@ -1,0 +1,13 @@
+{
+  "venvPath": "D:/GitProjects/city-sense/backend",
+  "venv": "venv",
+  "pythonVersion": "3.10",
+  "pythonPlatform": "Windows",
+  "extraPaths": [
+    "D:/GitProjects/city-sense/backend/venv/Lib/site-packages"
+  ],
+  "exclude": [
+    "**/node_modules",
+    "**/__pycache__"
+  ]
+}
