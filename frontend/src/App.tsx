@@ -1,4 +1,4 @@
-// frontend/src/App.tsx
+// frontend/src/App.tsx - Versão corrigida
 import React, { useState, useEffect, useContext } from 'react';
 import type { ForecastPoint } from './components/Types/types';
 import ForecastChart from './components/ForecastChart'; 
@@ -13,6 +13,7 @@ import { IQVTips } from './components/IQVTips';
 import { Footer } from './components/layout/Footer';
 import { ThemeContext, ThemeProvider } from './context/ThemeContext';
 import MapVisualization from './components/MapVisualization';
+import { CityComparison } from './components/CityComparison';
 
 interface IQVData {
   city: string;
@@ -32,13 +33,6 @@ interface IQVData {
 }
 
 const AppContent = () => {
-  const [mlPrediction, setMLPrediction] = useState<{
-  predicted_iqv: number;
-  current_temperature: number;
-  current_humidity: number;
-  current_traffic_delay: number;
-  timestamp: string;
-} | null>(null);
   const { darkMode, toggleDarkMode } = useContext(ThemeContext);
   const [data, setData] = useState<IQVData | null>(null);
   const [loading, setLoading] = useState(false);
@@ -49,13 +43,26 @@ const AppContent = () => {
   const [forecast, setForecast] = useState<ForecastPoint[] | null>(null);
   const [searchTried, setSearchTried] = useState(false);
   const [showMap, setShowMap] = useState(true);
+  const [mlPrediction, setMLPrediction] = useState<{
+    predicted_iqv: number;
+    current_temperature: number;
+    current_humidity: number;
+    current_traffic_delay: number;
+    timestamp: string;
+  } | null>(null);
+  
+  // Estado para cidade de comparação
+  const [comparisonCity, setComparisonCity] = useState('');
+  const [showComparisonInput, setShowComparisonInput] = useState(false);
+  const [comparisonForecast, setComparisonForecast] = useState<ForecastPoint[] | null>(null);
+
   const getIQVColor = (iqv: number, darkMode: boolean) => {
-  if (iqv >= 8) return darkMode ? '#10b981' : '#047857'; // Verde
-  if (iqv >= 6) return darkMode ? '#84cc16' : '#65a30d'; // Amarelo-Verde
-  if (iqv >= 4) return darkMode ? '#eab308' : '#ca8a04'; // Amarelo
-  if (iqv >= 2) return darkMode ? '#f97316' : '#c2410c'; // Laranja
-  return darkMode ? '#ef4444' : '#b91c1c'; // Vermelho
-};
+    if (iqv >= 8) return darkMode ? '#10b981' : '#047857'; // Verde
+    if (iqv >= 6) return darkMode ? '#84cc16' : '#65a30d'; // Amarelo-Verde
+    if (iqv >= 4) return darkMode ? '#eab308' : '#ca8a04'; // Amarelo
+    if (iqv >= 2) return darkMode ? '#f97316' : '#c2410c'; // Laranja
+    return darkMode ? '#ef4444' : '#b91c1c'; // Vermelho
+  };
 
   // Formata a data de atualização
   const dataFormatada = data
@@ -111,26 +118,39 @@ const AppContent = () => {
   };
 
   // Busca previsão do tempo com tratamento robusto
-  const fetchForecast = async () => {
-    if (!city) return;
+  const fetchForecast = async (cityName?: string) => {
+    const cityToFetch = cityName || city;
+    if (!cityToFetch) return;
     try {
-      console.log(`🌤️ Buscando previsão para: ${city}`);
-      const response = await fetch(`/api/forecast?city=${encodeURIComponent(city)}`, {
+      console.log(`🌤️ Buscando previsão para: ${cityToFetch}`);
+      const response = await fetch(`/api/forecast?city=${encodeURIComponent(cityToFetch)}`, {
         signal: AbortSignal.timeout(8000)
       });
       if (!response.ok) {
         const errorData = await response.json().catch(() => null);
         const errorMessage = errorData?.detail || `Erro ${response.status}: ${response.statusText}`;
         console.warn('⚠️ Previsão não disponível:', errorMessage);
-        setForecast(null);
+        if (cityName === comparisonCity) {
+          setComparisonForecast(null);
+        } else {
+          setForecast(null);
+        }
         return;
       }
       const result = await response.json();
       console.log('🌤️ Previsão carregada:', result.forecast);
-      setForecast(result.forecast);
+      if (cityName === comparisonCity) {
+        setComparisonForecast(result.forecast);
+      } else {
+        setForecast(result.forecast);
+      }
     } catch (err) {
       console.error('⚠️ Erro na previsão:', err);
-      setForecast(null);
+      if (cityName === comparisonCity) {
+        setComparisonForecast(null);
+      } else {
+        setForecast(null);
+      }
     }
   };
 
@@ -150,10 +170,15 @@ const AppContent = () => {
   useEffect(() => {
     if (city) {
       fetchForecast();
-      const interval = setInterval(fetchForecast, 300000);
+      const interval = setInterval(() => {
+        fetchForecast();
+        if (comparisonCity) {
+          fetchForecast(comparisonCity);
+        }
+      }, 300000);
       return () => clearInterval(interval);
     }
-  }, [city]);
+  }, [city, comparisonCity]);
 
   // Manipula a busca
   const handleSearch = async (e: React.FormEvent) => {
@@ -190,34 +215,41 @@ const AppContent = () => {
 
   // Dados para o mapa
   const cityData = data ? {
-  longitude: data.longitude,
-  latitude: data.latitude,
-  iqv: data.iqv_overall,
-  city: data.city,
-  country: data.country
-} : null;
+    longitude: data.longitude,
+    latitude: data.latitude,
+    iqv: data.iqv_overall,
+    city: data.city,
+    country: data.country
+  } : null;
 
   useEffect(() => {
-  if (city && data) {
-    const fetchMLPrediction = async () => {
-      try {
-        const response = await fetch(`/api/predict/iqv?city=${encodeURIComponent(city)}`);
-        if (response.ok) {
-          const prediction = await response.json();
-          setMLPrediction(prediction);
+    if (city && data) {
+      const fetchMLPrediction = async () => {
+        try {
+          const response = await fetch(`/api/predict/iqv?city=${encodeURIComponent(city)}`);
+          if (response.ok) {
+            const prediction = await response.json();
+            setMLPrediction(prediction);
+          }
+        } catch (err) {
+          console.error('Erro ao buscar previsão do ML:', err);
         }
-      } catch (err) {
-        console.error('Erro ao buscar previsão do ML:', err);
-      }
-    };
-    
-    fetchMLPrediction();
-    
-    // Atualiza a previsão a cada 30 minutos
-    const interval = setInterval(fetchMLPrediction, 1800000);
-    return () => clearInterval(interval);
-  }
-}, [city, data]);
+      };
+      fetchMLPrediction();
+      // Atualiza a previsão a cada 30 minutos
+      const interval = setInterval(fetchMLPrediction, 1800000);
+      return () => clearInterval(interval);
+    }
+  }, [city, data]);
+
+  // Função para lidar com a comparação de cidades
+  const handleCompareCities = () => {
+    if (comparisonCity.trim() && data) {
+      // Buscar previsão para a cidade de comparação
+      fetchForecast(comparisonCity);
+      console.log(`Comparando ${data.city} com ${comparisonCity}`);
+    }
+  };
 
   return (
     <>
@@ -254,7 +286,6 @@ const AppContent = () => {
             isSearching={loading}
             darkMode={darkMode}
           />
-          
           {/* Estado de carregamento inicial */}
           {!searchTried && (
             <div style={{ 
@@ -293,10 +324,8 @@ const AppContent = () => {
               </style>
             </div>
           )}
-          
           {/* Estado de loading durante busca */}
           {loading && searchTried && !data && <LoadingState darkMode={darkMode} />}
-          
           {/* Erros */}
           {error && (
             <ErrorState 
@@ -305,7 +334,6 @@ const AppContent = () => {
               darkMode={darkMode}
             />
           )}
-          
           {/* Dados principais */}
           {data && !loading && !error && (
             <div style={{ 
@@ -333,6 +361,83 @@ const AppContent = () => {
               <div>
                 <IQVBreakdown data={data} darkMode={darkMode} />
                 <IQVTips data={data} darkMode={darkMode} />
+              </div>
+            </div>
+          )}
+          
+          {/* Seção de comparação de cidades */}
+          {data && (
+            <div style={{ 
+              marginBottom: '32px',
+              backgroundColor: darkMode ? '#1e293b' : 'white',
+              borderRadius: '12px',
+              boxShadow: darkMode ? '0 4px 6px rgba(0, 0, 0, 0.3)' : '0 4px 6px rgba(0, 0, 0, 0.05)',
+              overflow: 'hidden'
+            }}>
+              <div style={{
+                padding: '16px',
+                borderBottom: darkMode ? '1px solid #334155' : '1px solid #e2e8f0'
+              }}>
+                <h2 style={{ 
+                  fontSize: '1.5rem', 
+                  fontWeight: '600',
+                  color: darkMode ? '#cbd5e1' : '#1e293b'
+                }}>
+                  Comparação de Cidades
+                </h2>
+              </div>
+              <div style={{ padding: '16px' }}>
+                <div style={{ 
+                  display: 'flex', 
+                  flexDirection: 'column', 
+                  gap: '12px',
+                  marginBottom: '16px'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <span style={{ 
+                      fontWeight: '600',
+                      color: darkMode ? '#e2e8f0' : '#1e293b'
+                    }}>
+                      Digite a cidade para comparação:
+                    </span>
+                    <input
+                      type="text"
+                      value={comparisonCity}
+                      onChange={(e) => setComparisonCity(e.target.value)}
+                      placeholder="Ex: Rio de Janeiro"
+                      style={{
+                        padding: '8px 12px',
+                        borderRadius: '6px',
+                        border: darkMode ? '1px solid #334155' : '1px solid #e2e8f0',
+                        backgroundColor: darkMode ? '#334155' : '#f1f5f9',
+                        color: darkMode ? '#e2e8f0' : '#1e293b',
+                        flex: 1
+                      }}
+                    />
+                    <button
+                      onClick={handleCompareCities}
+                      style={{
+                        padding: '8px 16px',
+                        backgroundColor: darkMode ? '#3b82f6' : '#2563eb',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '6px',
+                        cursor: 'pointer',
+                        fontWeight: '600'
+                      }}
+                    >
+                      Comparar
+                    </button>
+                  </div>
+                </div>
+                
+                {/* Componente de comparação de cidades */}
+                <div style={{ marginTop: '16px' }}>
+                  <CityComparison 
+                    cities={data ? [data.city, comparisonCity] : [data?.city || 'São Paulo', comparisonCity]}
+                    darkMode={darkMode}
+                  />
+                </div>
               </div>
             </div>
           )}
@@ -397,31 +502,99 @@ const AppContent = () => {
   </div>
 )}
 
-{forecast && forecast.length > 0 && (
-  <div style={{ 
-    marginBottom: '32px',
-    backgroundColor: darkMode ? '#1e293b' : 'white',
-    borderRadius: '12px',
-    boxShadow: darkMode ? '0 4px 6px rgba(0, 0, 0, 0.3)' : '0 4px 6px rgba(0, 0, 0, 0.05)',
-    overflow: 'hidden'
-  }}>
-    <div style={{
-      padding: '16px',
-      borderBottom: darkMode ? '1px solid #334155' : '1px solid #e2e8f0'
-    }}>
-      <h2 style={{ 
-        fontSize: '1.5rem', 
-        fontWeight: '600',
-        color: darkMode ? '#cbd5e1' : '#1e293b'
-      }}>
-        Temperaturas Previstas
-      </h2>
-    </div>
-    <div style={{ padding: '16px' }}>
-      <ForecastChart data={forecast} darkMode={darkMode} />
-    </div>
-  </div>
-)}
+          {/* Nova seção: Temperaturas Previstas para a cidade principal */}
+          {data && forecast && forecast.length > 0 && (
+            <div style={{ 
+              marginBottom: '32px',
+              backgroundColor: darkMode ? '#1e293b' : 'white',
+              borderRadius: '12px',
+              boxShadow: darkMode ? '0 4px 6px rgba(0, 0, 0, 0.3)' : '0 4px 6px rgba(0, 0, 0, 0.05)',
+              overflow: 'hidden'
+            }}>
+              <div style={{
+                padding: '16px',
+                borderBottom: darkMode ? '1px solid #334155' : '1px solid #e2e8f0'
+              }}>
+                <h2 style={{ 
+                  fontSize: '1.5rem', 
+                  fontWeight: '600',
+                  color: darkMode ? '#cbd5e1' : '#1e293b'
+                }}>
+                  Temperaturas Previstas - {data.city}
+                </h2>
+              </div>
+              <div style={{ padding: '16px' }}>
+                <ForecastChart data={forecast} darkMode={darkMode} />
+              </div>
+            </div>
+          )}
+
+          {/* Nova seção: Temperaturas Previstas para a cidade de comparação */}
+          {comparisonCity && comparisonForecast && comparisonForecast.length > 0 && (
+            <div style={{ 
+              marginBottom: '32px',
+              backgroundColor: darkMode ? '#1e293b' : 'white',
+              borderRadius: '12px',
+              boxShadow: darkMode ? '0 4px 6px rgba(0, 0, 0, 0.3)' : '0 4px 6px rgba(0, 0, 0, 0.05)',
+              overflow: 'hidden'
+            }}>
+              <div style={{
+                padding: '16px',
+                borderBottom: darkMode ? '1px solid #334155' : '1px solid #e2e8f0'
+              }}>
+                <h2 style={{ 
+                  fontSize: '1.5rem', 
+                  fontWeight: '600',
+                  color: darkMode ? '#cbd5e1' : '#1e293b'
+                }}>
+                  Temperaturas Previstas - {comparisonCity}
+                </h2>
+              </div>
+              <div style={{ padding: '16px' }}>
+                <ForecastChart data={comparisonForecast} darkMode={darkMode} />
+              </div>
+            </div>
+          )}
+
+          {/* Mensagem quando não há previsão para cidade de comparação */}
+          {comparisonCity && !comparisonForecast && comparisonForecast !== null && (
+            <div style={{ 
+              marginBottom: '32px',
+              backgroundColor: darkMode ? '#1e293b' : 'white',
+              borderRadius: '12px',
+              boxShadow: darkMode ? '0 4px 6px rgba(0, 0, 0, 0.3)' : '0 4px 6px rgba(0, 0, 0, 0.05)',
+              overflow: 'hidden'
+            }}>
+              <div style={{
+                padding: '16px',
+                borderBottom: darkMode ? '1px solid #334155' : '1px solid #e2e8f0'
+              }}>
+                <h2 style={{ 
+                  fontSize: '1.5rem', 
+                  fontWeight: '600',
+                  color: darkMode ? '#cbd5e1' : '#1e293b'
+                }}>
+                  Temperaturas Previstas - {comparisonCity}
+                </h2>
+              </div>
+              <div style={{ padding: '16px', textAlign: 'center' }}>
+                <div style={{ 
+                  fontSize: '2rem', 
+                  marginBottom: '10px',
+                  color: darkMode ? '#94a3b8' : '#64748b'
+                }}>
+                  🌤️
+                </div>
+                <p style={{ 
+                  color: darkMode ? '#94a3b8' : '#64748b',
+                  textAlign: 'center'
+                }}>
+                  Previsão do tempo não disponível para {comparisonCity}
+                </p>
+              </div>
+            </div>
+          )}
+
           {/* Nova seção: Previsão do IQV com ML */}
           {data && !loading && !error && (
             <div style={{ 
@@ -512,7 +685,6 @@ const AppContent = () => {
               </div>
             </div>
           )}
-          
           {/* Mensagem quando não há dados */}
           {!data && searchTried && !loading && !error && (
             <div style={{
@@ -540,7 +712,6 @@ const AppContent = () => {
               </p>
             </div>
           )}
-          
           <Footer darkMode={darkMode} />
         </div>
       </div>

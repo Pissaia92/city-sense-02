@@ -32,12 +32,12 @@ export const CityHeader = ({ data, dataFormatada, getWeatherIcon, darkMode = fal
           }}>
             {data.city}, {data.country}
           </h2>
-          <p style={{
+          {/* <p style={{
             color: darkMode ? '#94a3b8' : '#64748b',
             margin: 0
           }}>
             Atualizado em: {dataFormatada}
-          </p>
+          </p> */}
         </div>
         <div style={{
           fontSize: '3.5rem',

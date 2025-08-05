@@ -117,7 +117,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
             padding: '0 24px',
             backgroundColor: isSearching ? '#cbd5e1' : '#0ea5e9',
             color: 'white',
-            width: '600px',
+            width: '150px',
             border: 'none',
             borderRadius: '16px',
             height: '52px',

@@ -300,13 +300,13 @@ export const MapVisualization: React.FC<MapVisualizationProps> = ({ cityData, da
       />
       {/* Legenda do heatmap */}
       <div style={{
-        position: 'absolute',
+        position: 'fixed',
         bottom: '20px',
         right: '20px',
         backgroundColor: darkMode ? 'rgba(30, 41, 59, 0.8)' : 'rgba(248, 250, 252, 0.8)',
-        padding: '10px',
-        borderRadius: '6px',
-        border: darkMode ? '1px solid #334155' : '1px solid #e2e8f0'
+        padding: '20px',
+        borderRadius: '8px',
+        border: darkMode ? '1px solid #729fddff' : '1px solid #e2e8f0'
       }}>
         <div style={{ fontWeight: 'bold', marginBottom: '8px' }}>
           Legenda do IQV
@@ -315,8 +315,8 @@ export const MapVisualization: React.FC<MapVisualizationProps> = ({ cityData, da
           <span style={{ display: 'flex', alignItems: 'center', marginBottom: '4px' }}>
             <span style={{ 
               display: 'inline-block', 
-              width: '16px', 
-              height: '16px', 
+              width: '20px', 
+              height: '20px', 
               backgroundColor: 'rgb(33,102,172)', 
               marginRight: '8px',
               borderRadius: '4px'
