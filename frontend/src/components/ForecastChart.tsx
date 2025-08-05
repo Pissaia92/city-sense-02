@@ -46,16 +46,21 @@ const ForecastChart: React.FC<ForecastChartProps> = ({ data, darkMode }) => {
     
     datasets: [
       {
-        label: 'Temperatura Média',
-        data: data.map(item => item.temperature),
-        borderColor: darkMode ? '#3b82f6' : '#1d4ed8',
-        backgroundColor: darkMode ? 'rgba(59, 130, 246, 0.1)' : 'rgba(29, 78, 216, 0.1)',
-        tension: 0.3,
-        pointRadius: 5,
-        pointHoverRadius: 7,
-        fill: true,
-        borderWidth: 2
-      },
+  label: 'Temperatura Média',
+  data: data.map(item => item.temperature),
+  borderColor: darkMode ? '#3b82f6' : '#1d4ed8',
+  backgroundColor: darkMode ? 'rgba(59, 130, 246, 0.1)' : 'rgba(29, 78, 216, 0.1)',
+  tension: 0.3,
+  fill: true,
+  borderWidth: 2,
+
+  // ✅ Ícones dinâmicos
+  pointStyle: data.map(item => `https://openweathermap.org/img/wn/${item.icon}.png`),
+  pointRadius: 12,
+  pointHoverRadius: 14,
+  pointBackgroundColor: 'transparent', // Para não sobrepor o ícone
+  pointBorderColor: 'transparent',
+},
       {
         label: 'Temperatura Mínima',
         data: data.map(item => item.minTemperature),
@@ -155,31 +160,6 @@ const ForecastChart: React.FC<ForecastChartProps> = ({ data, darkMode }) => {
     }}>
       <Line data={chartData} options={options} />
       
-      {/* Legenda de ícones do clima */}
-      <div style={{
-        display: 'flex',
-        justifyContent: 'center',
-        marginTop: '15px',
-        gap: '20px',
-        flexWrap: 'wrap'
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-          <span>☀️</span>
-          <span style={{ color: darkMode ? '#cbd5e1' : '#1e293b', fontSize: '0.9rem' }}>Sol</span>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-          <span>☁️</span>
-          <span style={{ color: darkMode ? '#cbd5e1' : '#1e293b', fontSize: '0.9rem' }}>Nublado</span>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-          <span>⛈️</span>
-          <span style={{ color: darkMode ? '#cbd5e1' : '#1e293b', fontSize: '0.9rem' }}>Chuva</span>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-          <span>❄️</span>
-          <span style={{ color: darkMode ? '#cbd5e1' : '#1e293b', fontSize: '0.9rem' }}>Neve</span>
-        </div>
-      </div>
     </div>
   );
 };

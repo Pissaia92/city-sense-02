@@ -414,7 +414,7 @@ const AppContent = () => {
         fontWeight: '600',
         color: darkMode ? '#cbd5e1' : '#1e293b'
       }}>
-        Previsão e temperatura média para os próximos 7 dias
+        Temperatura média para os próximos 7 dias
       </h2>
     </div>
     <div style={{ padding: '16px' }}>
