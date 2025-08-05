@@ -1,5 +1,4 @@
-# backend/services/weather_service.py
-from datetime import datetime
+from datetime import datetime, timezone
 import os
 import requests
 from typing import Dict, Any
@@ -73,12 +72,15 @@ def get_forecast_data(city: str) -> list:
         daily_forecast = {}
         
         for item in data["list"]:
-            dt = datetime.fromtimestamp(item["dt"])
-            date_key = dt.strftime("%Y-%m-%d")  # ex: "2025-08-05"
+            dt = datetime.fromtimestamp(item["dt"], tz=timezone.utc)
+            date_key = dt.strftime("%Y-%m-%d")
             
             if date_key not in daily_forecast:
+                # Define o timestamp como meia-noite UTC do dia
+                midnight = dt.replace(hour=0, minute=0, second=0, microsecond=0)
+                timestamp = int(midnight.timestamp())
                 daily_forecast[date_key] = {
-                    "date": item["dt"],
+                    "date": timestamp,  #
                     "temps": [],
                     "descriptions": [],
                     "humidity": item["main"]["humidity"]
