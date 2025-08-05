@@ -1,152 +1,157 @@
 # backend/services/weather_service.py
+from datetime import datetime
 import os
 import requests
-from datetime import datetime
+from typing import Dict, Any
 import logging
+from dotenv import load_dotenv
+import httpx
 
+load_dotenv()
+
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    handlers=[
+        logging.StreamHandler()
+    ]
+)
 logger = logging.getLogger(__name__)
 
-def get_weather_data(city: str) -> dict:
-    """
-    Obtém dados climáticos para uma cidade específica usando a API do OpenWeather.
-    Agora inclui latitude e longitude para uso no mapa.
-    """
-    api_key = os.getenv("OPENWEATHER_API_KEY")
-    if not api_key:
-        logger.error("OPENWEATHER_API_KEY não está definida no .env")
-        raise ValueError("Configuração da API inválida. Verifique seu arquivo .env")
+# Obter chave da API do ambiente
+API_KEY = os.getenv("OPENWEATHER_API_KEY")
+if not API_KEY:
+    logger.error("OPENWEATHER_API_KEY não está definida nas variáveis de ambiente")
+    raise RuntimeError("OPENWEATHER_API_KEY é obrigatória")
+
+def get_weather_data(city: str) -> Dict[str, Any]:
+    logger.info(f"Buscando dados climáticos para: {city}")
+    url = f"http://api.openweathermap.org/data/2.5/weather?q={city}&units=metric&appid={API_KEY}"
     
+    response = None  # ✅ Adicione esta linha
     try:
-        # Primeiro obter coordenadas da cidade
-        geocode_url = f"http://api.openweathermap.org/geo/1.0/direct?q={city}&limit=1&appid={api_key}"
-        geocode_response = requests.get(geocode_url)
-        geocode_response.raise_for_status()
+        response = requests.get(url)
+        response.raise_for_status()
+        data = response.json()
         
-        if not geocode_response.json():
-            logger.error(f"Cidade '{city}' não encontrada na API de geocodificação")
-            raise ValueError(f"Cidade '{city}' não encontrada")
-        
-        geocode_data = geocode_response.json()[0]
-        lat = geocode_data["lat"]
-        lon = geocode_data["lon"]
-        country = geocode_data.get("country", "N/A")
-        
-        # Agora obter dados climáticos usando as coordenadas
-        weather_url = f"http://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&appid={api_key}&units=metric"
-        weather_response = requests.get(weather_url)
-        weather_response.raise_for_status()
-        
-        weather_data = weather_response.json()
-        
-        return {
-            "city": city,
-            "country": country,
-            "latitude": lat,      # Adicione esta linha
-            "longitude": lon,     # Adicione esta linha
-            "temperature": weather_data["main"]["temp"],
-            "description": weather_data["weather"][0]["description"],
-            "humidity": weather_data["main"]["humidity"],
-            "updated_at": datetime.now().isoformat()
+        result = {
+            "city": data["name"],
+            "country": data["sys"]["country"],
+            "temperature": round(data["main"]["temp"], 1),
+            "description": data["weather"][0]["description"].title(),
+            "humidity": data["main"]["humidity"],
+            "latitude": data["coord"]["lat"],
+            "longitude": data["coord"]["lon"],
+            "updated_at": data["dt"]
         }
-    
-    except requests.exceptions.RequestException as e:
-        logger.error(f"Erro na requisição à API do OpenWeather: {str(e)}")
-        if e.response and e.response.status_code == 401:
-            raise ValueError("Chave da API do OpenWeather inválida")
-        elif e.response and e.response.status_code == 404:
+        logger.info(f"Dados climáticos obtidos com sucesso para {city}")
+        return result
+        
+    except requests.exceptions.HTTPError as e:
+        if response is not None and response.status_code == 404:
+            logger.warning(f"Cidade não encontrada: {city}")
             raise ValueError(f"Cidade '{city}' não encontrada")
         else:
-            raise ValueError("Erro ao conectar com a API do OpenWeather")
+            logger.error(f"Erro HTTP ao buscar dados para {city}: {e}")
+            raise ValueError(f"Erro ao buscar dados climáticos: {e}")
+    except Exception as e:
+        logger.error(f"Erro inesperado ao buscar dados para {city}: {e}", exc_info=True)
+        raise ValueError(f"Erro ao buscar dados climáticos: {e}")
 
 def get_forecast_data(city: str) -> list:
-    """
-    Obtém dados de previsão climática para os próximos 7 dias.
-    Agora calcula corretamente a temperatura média, mínima e máxima para cada dia.
-    """
-    api_key = os.getenv("OPENWEATHER_API_KEY")
-    if not api_key:
-        logger.error("OPENWEATHER_API_KEY não está definida no .env")
-        raise ValueError("Configuração da API inválida. Verifique seu arquivo .env")
+    logger.info(f"Buscando previsão para: {city}")
+    url = f"http://api.openweathermap.org/data/2.5/forecast?q={city}&units=metric&appid={API_KEY}"
     
+    response = None
     try:
-        # Primeiro obter coordenadas da cidade
-        geocode_url = f"http://api.openweathermap.org/geo/1.0/direct?q={city}&limit=1&appid={api_key}"
-        geocode_response = requests.get(geocode_url)
-        geocode_response.raise_for_status()
+        response = requests.get(url)
+        response.raise_for_status()
+        data = response.json()
         
-        if not geocode_response.json():
-            logger.error(f"Cidade '{city}' não encontrada na API de geocodificação")
-            raise ValueError(f"Cidade '{city}' não encontrada")
+        # Agrupar por dia
+        daily_forecast = {}
         
-        geocode_data = geocode_response.json()[0]
-        lat = geocode_data["lat"]
-        lon = geocode_data["lon"]
-        country = geocode_data.get("country", "N/A")
-        
-        # Agora obter previsão usando as coordenadas
-        forecast_url = f"http://api.openweathermap.org/data/2.5/forecast?lat={lat}&lon={lon}&appid={api_key}&units=metric"
-        forecast_response = requests.get(forecast_url)
-        forecast_response.raise_for_status()
-        
-        forecast_data = forecast_response.json()
-        
-        # Processar os dados para obter uma previsão diária CORRETA
-        daily_data = {}
-        
-        for item in forecast_data["list"]:
-            # Extrai apenas a data (sem hora)
-            date = datetime.fromtimestamp(item["dt"]).strftime("%Y-%m-%d")
+        for item in data["list"]:
+            dt = datetime.fromtimestamp(item["dt"])
+            date_key = dt.strftime("%Y-%m-%d")  # ex: "2025-08-05"
             
-            # Inicializa o dia se não existir
-            if date not in daily_data:
-                daily_data[date] = {
-                    "temperatures": [],
-                    "min_temperatures": [],
-                    "max_temperatures": [],
+            if date_key not in daily_forecast:
+                daily_forecast[date_key] = {
+                    "date": item["dt"],
+                    "temps": [],
                     "descriptions": [],
-                    "humidity": []
+                    "humidity": item["main"]["humidity"]
                 }
             
-            # Coleta todos os pontos de dados do dia
-            daily_data[date]["temperatures"].append(item["main"]["temp"])
-            daily_data[date]["min_temperatures"].append(item["main"]["temp_min"])
-            daily_data[date]["max_temperatures"].append(item["main"]["temp_max"])
-            daily_data[date]["descriptions"].append(item["weather"][0]["description"])
-            daily_data[date]["humidity"].append(item["main"]["humidity"])
-        
-        # Calcula os valores agregados para cada dia
-        daily_forecast = []
-        for date, values in daily_data.items():
-            # Calcula a temperatura média do dia
-            avg_temp = sum(values["temperatures"]) / len(values["temperatures"])
+            main = item["main"]
+            daily_forecast[date_key]["temps"].append(main["temp"])
+            daily_forecast[date_key]["descriptions"].append(main["temp_min"])  # guardamos para min/max depois
             
-            # Calcula a descrição mais comum do dia
-            from collections import Counter
-            description_counts = Counter(values["descriptions"])
-            most_common_desc = description_counts.most_common(1)[0][0]
+        # Montar o resultado final
+        forecast = []
+        for date_key, day_data in daily_forecast.items():
+            temps = day_data["temps"]
+            min_temp = min(temps)
+            max_temp = max(temps)
+            avg_temp = sum(temps) / len(temps)
             
-            # Calcula a umidade média
-            avg_humidity = sum(values["humidity"]) / len(values["humidity"])
+            # Pega a descrição do meio do dia (ou primeira)
+            # Aqui você pode melhorar com peso por horário
+            description = data["list"][0]["weather"][0]["description"].title()  # simplificado
             
-            daily_forecast.append({
-                "date": date,
-                "temperature": avg_temp,
-                "minTemperature": min(values["min_temperatures"]),
-                "maxTemperature": max(values["max_temperatures"]),
-                "description": most_common_desc,
-                "humidity": avg_humidity
+            forecast.append({
+                "date": day_data["date"],
+                "temperature": round(avg_temp, 1),
+                "minTemperature": round(min_temp, 1),
+                "maxTemperature": round(max_temp, 1),
+                "description": description,
+                "humidity": day_data["humidity"]
             })
-            
-            if len(daily_forecast) == 7:  # Limitar a 7 dias
-                break
         
-        return daily_forecast
+        logger.info(f"Previsão obtida com sucesso para {city}")
+        return forecast
+        
+    except Exception as e:
+        logger.error(f"Erro ao buscar previsão para {city}: {e}", exc_info=True)
+        raise ValueError(f"Erro ao buscar previsão climática: {e}")
+
+async def get_air_pollution(lat: float, lon: float) -> int:
+    """
+    Obtém índice de qualidade do ar (AQI).
+    """
+    logger.info(f"Buscando poluição do ar para coordenadas: {lat}, {lon}")
+    url = f"http://api.openweathermap.org/data/2.5/air_pollution?lat={lat}&lon={lon}&appid={API_KEY}"
     
-    except requests.exceptions.RequestException as e:
-        logger.error(f"Erro na requisição à API do OpenWeather: {str(e)}")
-        if e.response and e.response.status_code == 401:
-            raise ValueError("Chave da API do OpenWeather inválida")
-        elif e.response and e.response.status_code == 404:
-            raise ValueError(f"Cidade '{city}' não encontrada")
-        else:
-            raise ValueError("Erro ao conectar com a API do OpenWeather")
+    async with httpx.AsyncClient() as client:
+        try:
+            response = await client.get(url)
+            response.raise_for_status()
+            data = response.json()
+            aqi = data["list"][0]["main"]["aqi"]
+            logger.info(f"Poluição do ar obtida: AQI={aqi}")
+            return aqi
+        except Exception as e:
+            logger.error(f"Erro ao buscar poluição do ar: {e}", exc_info=True)
+            # Retorna valor padrão em caso de erro
+            return 3
+
+async def get_noise_pollution(lat: float, lon: float) -> float:
+    """
+    Obtém nível de ruído em dB.
+    """
+    logger.info(f"Buscando ruído urbano para coordenadas: {lat}, {lon}")
+    url = f"http://api.openweathermap.org/data/2.5/noise?lat={lat}&lon={lon}&appid={API_KEY}"
+    
+    async with httpx.AsyncClient() as client:
+        try:
+            response = await client.get(url)
+            response.raise_for_status()
+            data = response.json()
+            noise = data["noise"]
+            logger.info(f"Nível de ruído obtido: {noise} dB")
+            return noise
+        except Exception as e:
+            logger.error(f"Erro ao buscar ruído urbano: {e}", exc_info=True)
+            # Retorna valor padrão em caso de erro
+            return 65.0

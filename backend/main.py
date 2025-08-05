@@ -7,7 +7,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from typing import Dict, Any, Callable, Union, Awaitable, Optional
 from datetime import datetime
 import logging
-import requests
 import unicodedata
 
 def normalize_city_name(city: str) -> str:
@@ -161,22 +160,8 @@ async def get_forecast(city: str):
         from services.weather_service import get_forecast_data
         # Obter dados de previsão
         forecast_data = get_forecast_data(city_normalized)
-        
-        # Adicionar ícones às previsões
-        for day in forecast_data:
-            description = day["description"].lower()
-            if "sun" in description or "clear" in description:
-                day["icon"] = "☀️"
-            elif "cloud" in description:
-                day["icon"] = "☁️"
-            elif "rain" in description:
-                day["icon"] = "⛈️"
-            elif "snow" in description:
-                day["icon"] = "❄️"
-            else:
-                day["icon"] = "🤷‍♂️"         
+              
         return {"forecast": forecast_data}
-    
     except ValueError as ve:
         logger.warning(f"Erro de validação para {city}: {str(ve)}")
         raise HTTPException(

@@ -1,0 +1,5 @@
+{
+  "root": true,
+  "extraPaths": ["backend"],
+  "pythonVersion": "3.11"
+}

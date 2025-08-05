@@ -35,7 +35,7 @@ const ForecastChart: React.FC<ForecastChartProps> = ({ data, darkMode }) => {
 
   // Processa os dados para o gráfico
   const chartData = {
-    labels: data.map(item => {
+    labels: data.map (item => {
       // Formata a data para ser mais legível
       const date = new Date(item.date);
       return date.toLocaleDateString('pt-BR', { 
@@ -58,7 +58,7 @@ const ForecastChart: React.FC<ForecastChartProps> = ({ data, darkMode }) => {
   pointStyle: data.map(item => `https://openweathermap.org/img/wn/${item.icon}.png`),
   pointRadius: 12,
   pointHoverRadius: 14,
-  pointBackgroundColor: 'transparent', // Para não sobrepor o ícone
+  pointBackgroundColor: 'transparent',
   pointBorderColor: 'transparent',
 },
       {
