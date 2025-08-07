@@ -12,25 +12,35 @@ interface ComparisonData {
 
 export const CityComparison = ({ cities, darkMode }: { cities: string[]; darkMode?: boolean }) => {
   const [data, setData] = useState<ComparisonData[]>([]);
-  const [loading, setLoading] = useState(false);
-  
+  const [loading, setLoading] = useState(true);
+  const [comparisonCache, setComparisonCache] = useState<Record<string, any>>({});
+
   useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
+    const fetchDataWithCache = async (cityName: string) => {
+      // Verifica se já temos os dados em cache
+      if (comparisonCache[cityName]) {
+        return comparisonCache[cityName];
+      }
+      
       try {
-        const results = await Promise.all(
-          cities.map(city => 
-            fetch(`/api/iqv?city=${encodeURIComponent(city)}`)
-              .then(res => {
-                if (!res.ok) throw new Error(`Erro na API: ${res.status}`);
-                return res.json();
-              })
-              .catch(err => {
-                console.error(`Erro ao buscar dados para ${city}:`, err);
-                return null;
-              })
-          )
-        );
+        const response = await fetch(`/api/iqv?city=${encodeURIComponent(cityName)}`);
+        if (!response.ok) throw new Error(`Erro ${response.status}`);
+        const data = await response.json();
+        
+        // Armazena no cache
+        setComparisonCache(prev => ({ ...prev, [cityName]: data }));
+        return data;
+      } catch (err) {
+        console.error('Erro ao buscar dados:', err);
+        return null;
+      }
+    };
+
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const promises = cities.map(city => fetchDataWithCache(city));
+        const results = await Promise.all(promises);
         
         const validResults = results.filter(Boolean) as any[];
         setData(validResults.map(cityData => ({
@@ -51,7 +61,7 @@ export const CityComparison = ({ cities, darkMode }: { cities: string[]; darkMod
   }, [cities]);
   
   if (cities.length < 2) return null;
-  if (loading) return <div>Carregando comparação...</div>;
+  if (loading) return <div style={{ padding: '20px', textAlign: 'center' }}>Carregando comparação...</div>;
   
   // Cores otimizadas para diferentes categorias IQV
   const barColors = {

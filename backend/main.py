@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 load_dotenv() 
 from fastapi import FastAPI, HTTPException, Depends, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
-from typing import Dict, Any, Callable, Union, Awaitable, Optional
+from typing import Dict, List, Any, Callable, Union, Awaitable, Optional
 from datetime import datetime
 import logging
 import unicodedata
@@ -142,7 +142,7 @@ async def get_iqv(city: str):
         raise HTTPException(
             status_code=500,
             detail="Erro interno ao processar a solicitação"
-        )
+        ) 
 
 @app.get("/api/forecast",
          summary="Obtém a previsão climática para uma cidade",
@@ -266,6 +266,38 @@ async def ml_status():
             "error": str(e),
             "timestamp": datetime.now().isoformat()
         }
+    
+@app.get("/api/suggestions")
+async def get_city_suggestions(q: str, limit: int = 15):
+    """
+    Retorna sugestões de cidades com base na query de busca
+    """
+    # Lista completa de cidades (você pode expandir conforme necessário)
+    all_cities = [
+        "São Paulo", "Rio de Janeiro", "Belo Horizonte", "Porto Alegre", "Salvador",
+        "Brasília", "Fortaleza", "Manaus", "Curitiba", "Recife", "Goiânia", "Florianópolis",
+        "São José dos Campos", "São José do Rio Preto", "São Luís", "São Francisco", 
+        "São Carlos", "São João", "São Mateus", "São Miguel", "São Sebastião",
+        "London", "Paris", "Berlin", "Madrid", "Rome", "Amsterdam", "Tokyo", "Seoul",
+        "Beijing", "New York", "Los Angeles", "Chicago", "Miami", "Boston", "Seattle",
+        "Sydney", "Melbourne", "Toronto", "Vancouver", "Dublin", "Stockholm", "Oslo",
+        "Copenhagen", "Helsinki", "Warsaw", "Prague", "Vienna", "Athens", "Istanbul",
+        "Moscow", "Cairo", "Johannesburg", "Nairobi", "Lagos", "Buenos Aires", "Santiago",
+        "Mexico City", "Guadalajara", "Lima", "Bogotá", "Caracas", "São Paulo", "São José"
+    ]
+    
+    # Se a query for muito curta, retorna vazio
+    if len(q) < 1:
+        return []
+    
+    # Filtrar cidades que contêm a query (case insensitive)
+    suggestions = [city for city in all_cities if q.lower() in city.lower()]
+    
+    # Remover duplicatas e manter ordem
+    unique_suggestions = list(dict.fromkeys(suggestions))
+    
+    # Retornar máximo limit sugestões
+    return unique_suggestions[:limit]
 
 if __name__ == "__main__":
     import uvicorn

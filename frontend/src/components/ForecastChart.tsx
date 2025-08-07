@@ -36,30 +36,28 @@ const ForecastChart: React.FC<ForecastChartProps> = ({ data, darkMode }) => {
   // Processa os dados para o gráfico
   const chartData = {
     labels: data.map(item => {
-  const date = new Date(item.date * 1000); // ✅ Corrigido: segundos → milissegundos
-  return date.toLocaleDateString('pt-BR', { 
-    day: '2-digit', 
-    month: 'short' 
-  });
-}),
+      const date = new Date(item.date * 1000); 
+      return date.toLocaleDateString('pt-BR', { 
+        day: '2-digit', 
+        month: 'short' 
+      });
+    }),
     
     datasets: [
       {
-  label: 'Temperatura Média',
-  data: data.map(item => item.temperature),
-  borderColor: darkMode ? '#3b82f6' : '#1d4ed8',
-  backgroundColor: darkMode ? 'rgba(59, 130, 246, 0.1)' : 'rgba(29, 78, 216, 0.1)',
-  tension: 0.3,
-  fill: true,
-  borderWidth: 2,
-
-  // ✅ Ícones dinâmicos
-  pointStyle: data.map(item => `https://openweathermap.org/img/wn/${item.icon}.png`),
-  pointRadius: 12,
-  pointHoverRadius: 14,
-  pointBackgroundColor: 'transparent',
-  pointBorderColor: 'transparent',
-},
+        label: 'Temperatura Média',
+        data: data.map(item => item.temperature),
+        borderColor: darkMode ? '#3b82f6' : '#1d4ed8',
+        backgroundColor: darkMode ? 'rgba(59, 130, 246, 0.1)' : 'rgba(29, 78, 216, 0.1)',
+        tension: 0.3,
+        fill: true,
+        borderWidth: 2,
+        pointRadius: 4,
+        pointHoverRadius: 6,
+        pointBackgroundColor: darkMode ? '#3b82f6' : '#1d4ed8',
+        pointBorderColor: darkMode ? '#1e293b' : '#ffffff',
+        pointBorderWidth: 2,
+      },
       {
         label: 'Temperatura Mínima',
         data: data.map(item => item.minTemperature),
@@ -85,70 +83,6 @@ const ForecastChart: React.FC<ForecastChartProps> = ({ data, darkMode }) => {
     ]
   };
 
-  const options = {
-  maintainAspectRatio: false,
-  responsive: true,
-  plugins: {
-    legend: {
-      display: true,
-      position: 'top' as const, // Adicione 'as const'
-      labels: {
-        color: darkMode ? '#cbd5e1' : '#1e293b'
-      }
-    },
-      tooltip: {
-      mode: 'index' as const, // Adicione 'as const'
-      intersect: false,
-      backgroundColor: darkMode ? '#1e293b' : '#ffffff',
-      titleColor: darkMode ? '#cbd5e1' : '#1e293b',
-      bodyColor: darkMode ? '#cbd5e1' : '#1e293b',
-      borderColor: darkMode ? '#334155' : '#e2e8f0',
-      borderWidth: 1,
-         callbacks: {
-        label: (context: any) => {
-          const datasetLabel = context.dataset.label || '';
-          if (datasetLabel === 'Temperatura Média') {
-            return `${context.parsed.y.toFixed(1)}°C`;
-          } else if (datasetLabel === 'Temperatura Mínima') {
-            return `Min: ${context.parsed.y.toFixed(1)}°C`;
-          } else if (datasetLabel === 'Temperatura Máxima') {
-            return `Max: ${context.parsed.y.toFixed(1)}°C`;
-          }
-          return '';
-          }
-        }
-      }
-    },
-   scales: {
-    y: {
-      title: {
-        display: true,
-        text: 'Temperatura (°C)',
-        color: darkMode ? '#cbd5e1' : '#1e293b'
-      },
-      ticks: {
-        color: darkMode ? '#94a3b8' : '#64748b',
-        callback: (value: any) => `${value}°C`
-      },
-      grid: {
-        color: darkMode ? 'rgba(203, 213, 225, 0.1)' : 'rgba(0, 0, 0, 0.1)'
-      }
-    },
-    x: {
-      title: {
-        display: true,
-        text: 'Data',
-        color: darkMode ? '#cbd5e1' : '#1e293b'
-      },
-      ticks: {
-        color: darkMode ? '#94a3b8' : '#64748b'
-      },
-      grid: {
-        color: darkMode ? 'rgba(203, 213, 225, 0.1)' : 'rgba(0, 0, 0, 0.1)'
-      }
-    }
-  }
-};
 
   return (
     <div style={{ 
@@ -157,8 +91,70 @@ const ForecastChart: React.FC<ForecastChartProps> = ({ data, darkMode }) => {
       borderRadius: '8px',
       padding: '20px'
     }}>
-      <Line data={chartData} options={options} />
-      
+      <Line data={chartData} options={{
+        maintainAspectRatio: false,
+        responsive: true,
+        plugins: {
+          legend: {
+            display: true,
+            position: 'top',
+            labels: {
+              color: darkMode ? '#cbd5e1' : '#1e293b'
+            }
+          },
+          tooltip: {
+            mode: 'index',
+            intersect: false,
+            backgroundColor: darkMode ? '#1e293b' : '#ffffff',
+            titleColor: darkMode ? '#cbd5e1' : '#1e293b',
+            bodyColor: darkMode ? '#cbd5e1' : '#1e293b',
+            borderColor: darkMode ? '#334155' : '#e2e8f0',
+            borderWidth: 1,
+            callbacks: {
+              label: (context: any) => {
+                const datasetLabel = context.dataset.label || '';
+                if (datasetLabel === 'Temperatura Média') {
+                  return `${context.parsed.y.toFixed(1)}°C`;
+                } else if (datasetLabel === 'Temperatura Mínima') {
+                  return `Min: ${context.parsed.y.toFixed(1)}°C`;
+                } else if (datasetLabel === 'Temperatura Máxima') {
+                  return `Max: ${context.parsed.y.toFixed(1)}°C`;
+                }
+                return '';
+              }
+            }
+          }
+        },
+        scales: {
+          y: {
+            title: {
+              display: true,
+              text: 'Temperatura (°C)',
+              color: darkMode ? '#cbd5e1' : '#1e293b'
+            },
+            ticks: {
+              color: darkMode ? '#94a3b8' : '#64748b',
+              callback: (value: any) => `${value}°C`
+            },
+            grid: {
+              color: darkMode ? 'rgba(203, 213, 225, 0.1)' : 'rgba(0, 0, 0, 0.1)'
+            }
+          },
+          x: {
+            title: {
+              display: true,
+              text: 'Data',
+              color: darkMode ? '#cbd5e1' : '#1e293b'
+            },
+            ticks: {
+              color: darkMode ? '#94a3b8' : '#64748b'
+            },
+            grid: {
+              color: darkMode ? 'rgba(203, 213, 225, 0.1)' : 'rgba(0, 0, 0, 0.1)'
+            }
+          }
+        }
+      }} />
     </div>
   );
 };

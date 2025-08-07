@@ -1,0 +1,13 @@
+{
+  "city": "Sao Paulo",
+  "temperature": 25.0,
+  "humidity": 60.0,
+  "traffic_delay": 15.0,
+  "aqi": 45.0,
+  "safety_index": 7.5,
+  "temp_normalized": 0.25,
+  "humidity_score": 8.0,
+  "traffic_score": 5.0,
+  "predicted_iqv": 7.5,
+  "timestamp": "2025-08-07T13:14:56.302640"
+}
