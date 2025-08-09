@@ -52,10 +52,11 @@ app = FastAPI(
 # Configurar CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE"],
     allow_headers=["*"],
+    expose_headers=["*"]
 )
 
 # =============== CONFIGURAÇÃO DO RATE LIMITING ===============
@@ -98,6 +99,7 @@ def calculate_iqv(temperature: float, humidity: float, traffic_delay: float = 0)
          response_description="Dados do IQV calculados com sucesso",
          tags=["IQV"])
 async def get_iqv(city: str):
+    print(f"Rota acessada para cidade: {city}")
     logger.info(f"Recebida solicitação para cidade: {city}")
     try:
         # Normaliza o nome da cidade

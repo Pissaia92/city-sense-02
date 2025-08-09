@@ -1,4 +1,3 @@
-// frontend/src/components/CityComparison.tsx
 import React, { useEffect, useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 
@@ -17,21 +16,24 @@ export const CityComparison = ({ cities, darkMode }: { cities: string[]; darkMod
 
   useEffect(() => {
     const fetchDataWithCache = async (cityName: string) => {
-      // Verifica se já temos os dados em cache
       if (comparisonCache[cityName]) {
         return comparisonCache[cityName];
       }
       
       try {
         const response = await fetch(`/api/iqv?city=${encodeURIComponent(cityName)}`);
-        if (!response.ok) throw new Error(`Erro ${response.status}`);
+        if (!response.ok) {
+          if (response.status === 404) {
+            console.log('Cidade não encontrada');
+            return null;
+          }
+          throw new Error(`Erro ${response.status}`);
+        }
         const data = await response.json();
-        
-        // Armazena no cache
         setComparisonCache(prev => ({ ...prev, [cityName]: data }));
         return data;
-      } catch (err) {
-        console.error('Erro ao buscar dados:', err);
+      } catch (error) {
+        console.error('Erro ao buscar dados:', error);
         return null;
       }
     };
@@ -63,12 +65,11 @@ export const CityComparison = ({ cities, darkMode }: { cities: string[]; darkMod
   if (cities.length < 2) return null;
   if (loading) return <div style={{ padding: '20px', textAlign: 'center' }}>Carregando comparação...</div>;
   
-  // Cores otimizadas para diferentes categorias IQV
   const barColors = {
-    iqv_overall: darkMode ? '#3b82f6' : '#2563eb', // Azul
-    iqv_climate: darkMode ? '#10b981' : '#059669', // Verde
-    iqv_humidity: darkMode ? '#eab308' : '#d97706', // Amarelo
-    iqv_traffic: darkMode ? '#f97316' : '#ea580c'  // Laranja
+    iqv_overall: darkMode ? '#3b82f6' : '#2563eb',
+    iqv_climate: darkMode ? '#10b981' : '#059669',
+    iqv_humidity: darkMode ? '#eab308' : '#d97706',
+    iqv_traffic: darkMode ? '#f97316' : '#ea580c'
   };
 
   return (
@@ -83,7 +84,6 @@ export const CityComparison = ({ cities, darkMode }: { cities: string[]; darkMod
       <h2 style={{ marginBottom: '16px', color: darkMode ? '#e2e8f0' : '#1e293b' }}>Comparação de Cidades</h2>
       
       <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-        {/* Gráfico IQV por Categoria - Barras Agrupadas */}
         <div>
           <h3 style={{ marginBottom: '12px', color: darkMode ? '#e2e8f0' : '#1e293b' }}>IQV por Categoria</h3>
           <ResponsiveContainer width="100%" height={400}>
