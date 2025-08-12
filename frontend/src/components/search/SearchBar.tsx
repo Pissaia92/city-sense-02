@@ -1,4 +1,3 @@
-// frontend/src/components/search/SearchBar.tsx
 import React from 'react';
 
 interface SearchBarProps {
@@ -12,7 +11,6 @@ interface SearchBarProps {
   isSearching: boolean;
   darkMode: boolean;
   searchRef?: React.RefObject<HTMLDivElement>;
-  onInputChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onSelectSuggestion?: (suggestion: string) => void;
 }
 
@@ -27,7 +25,6 @@ const SearchBar: React.FC<SearchBarProps> = ({
   isSearching,
   darkMode,
   searchRef,
-  onInputChange,
   onSelectSuggestion
 }) => {
   return (
@@ -38,24 +35,19 @@ const SearchBar: React.FC<SearchBarProps> = ({
           value={inputCity}
           onChange={(e) => {
             setInputCity(e.target.value);
-            if (onInputChange) onInputChange(e);
           }}
-          onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
-          onFocus={() => setShowSuggestions(true)}
-          placeholder="Digite o nome da cidade..."
+          placeholder="Digite o nome da cidade"
           style={{
-            width: '100%',
-            padding: '12px 16px',
-            borderRadius: '8px',
+            padding: '8px 12px',
+            borderRadius: '6px',
             border: darkMode ? '1px solid #334155' : '1px solid #e2e8f0',
-            backgroundColor: darkMode ? '#1e293b' : '#f8fafc',
+            backgroundColor: darkMode ? '#334155' : '#f1f5f9',
             color: darkMode ? '#e2e8f0' : '#1e293b',
-            fontSize: '1rem',
-            marginBottom: '8px'
+            width: '100%'
           }}
         />
-        
-        {/* Sugestões de cidades */}
+
+        {/* // Sugestões de cidades // */}
         {showSuggestions && suggestedCities.length > 0 && (
           <div style={{
             position: 'absolute',
@@ -106,7 +98,8 @@ const SearchBar: React.FC<SearchBarProps> = ({
           border: 'none',
           borderRadius: '6px',
           cursor: isSearching ? 'not-allowed' : 'pointer',
-          fontWeight: '600'
+          fontWeight: '600',
+          marginLeft: '8px'
         }}
       >
         {isSearching ? 'Buscando...' : 'Buscar'}

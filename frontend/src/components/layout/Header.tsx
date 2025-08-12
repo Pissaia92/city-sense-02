@@ -38,25 +38,33 @@ export const Header = ({ data, city, darkMode = false, toggleDarkMode }: HeaderP
         </p>
       </div>
       
-      <button
-        onClick={toggleDarkMode}
-        style={{
-          background: 'none',
-          border: `1px solid ${darkMode ? '#475569' : '#cbd5e1'}`,
-          borderRadius: '50%',
-          width: '40px',
-          height: '40px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          cursor: 'pointer',
-          color: darkMode ? '#cbd5e1' : '#475569',
-          transition: 'all 0.3s ease'
-        }}
-        title={darkMode ? "Modo claro" : "Modo escuro"}
-      >
-        {darkMode ? '☀️' : '🌙'}
-      </button>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <span style={{ 
+          color: darkMode ? '#94a3b8' : '#64748b',
+          fontSize: '0.9rem'
+        }}>
+          Modo de cores
+        </span>
+        <button
+          onClick={toggleDarkMode}
+          style={{
+            background: 'none',
+            border: `1px solid ${darkMode ? '#475569' : '#cbd5e1'}`,
+            borderRadius: '50%',
+            width: '40px',
+            height: '40px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'pointer',
+            color: darkMode ? '#cbd5e1' : '#475569',
+            transition: 'all 0.3s ease'
+          }}
+          title={darkMode ? "Modo claro" : "Modo escuro"}
+        >
+          {darkMode ? '☀️' : '🌙'}
+        </button>
+      </div>
     </header>
   );
 };

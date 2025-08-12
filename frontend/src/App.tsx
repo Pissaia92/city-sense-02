@@ -56,7 +56,6 @@ const AppContent = () => {
     timestamp: string;
   } | null>(null);
   
-  // Estado para cidade de comparação
   const [comparisonCity, setComparisonCity] = useState('');
   const [comparisonForecast, setComparisonForecast] = useState<ForecastPoint[] | null>(null);
   const [comparisonLoading, setComparisonLoading] = useState(false);
@@ -70,43 +69,34 @@ const AppContent = () => {
 
   const dataFormatada = data ? DateTime.fromISO(data.updated_at).setZone('America/Sao_Paulo').toFormat("dd/MM/yyyy 'às' HH:mm") : '';
 
-const fetchSuggestions = async (query: string, isComparison: boolean = false) => {
+  const fetchSuggestions = async (query: string, isComparison: boolean = false) => {
     if (!query.trim()) {
-      if (isComparison) {
-        setComparisonSuggestions([]);
-      } else {
-        setMainSuggestions([]);
-      }
+      if (isComparison) setComparisonSuggestions([]);
+      else setMainSuggestions([]);
       return;
     }
     try {
       const response = await fetch(`/api/iqv?city=${encodeURIComponent(query)}`);
       if (response.ok) {
         const suggestions = await response.json();
-        if (isComparison) {
-          setComparisonSuggestions(suggestions);
-        } else {
-          setMainSuggestions(suggestions);
-        }
+        if (isComparison) setComparisonSuggestions(suggestions);
+        else setMainSuggestions(suggestions);
       }
     } catch (error) {
       console.error('Erro ao buscar sugestões:', error);
-      if (isComparison) {
-        setComparisonSuggestions([]);
-      } else {
-        setMainSuggestions([]);
-      }
+      if (isComparison) setComparisonSuggestions([]);
+      else setMainSuggestions([]);
     }
   };
-  const handleComparisonInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setComparisonCity(value);
-    setShowComparisonSuggestions(value.length > 0);
-    if (value.length > 2) {
-      fetchSuggestions(value, true);
-    } else {
-      setComparisonSuggestions([]);
-    }
+
+  const handleMainInputChange = (value: string) => {
+    setInputCity(value);  
+    setMainSuggestions([]);
+  };
+
+  const handleComparisonInputChange = (value: string) => {
+    setComparisonCity(value);  
+    setComparisonSuggestions([]);
   };
 
   const selectMainSuggestion = (suggestion: string) => {
@@ -172,17 +162,11 @@ const fetchSuggestions = async (query: string, isComparison: boolean = false) =>
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (mainSearchRef.current && !mainSearchRef.current.contains(event.target as Node)) {
-        setShowMainSuggestions(false);
-      }
-      if (comparisonSearchRef.current && !comparisonSearchRef.current.contains(event.target as Node)) {
-        setShowComparisonSuggestions(false);
-      }
+      if (mainSearchRef.current && !mainSearchRef.current.contains(event.target as Node)) setShowMainSuggestions(false);
+      if (comparisonSearchRef.current && !comparisonSearchRef.current.contains(event.target as Node)) setShowComparisonSuggestions(false);
     };
     document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   useEffect(() => { if (!searchTried) fetchData('São Paulo'); 
@@ -205,22 +189,13 @@ const fetchSuggestions = async (query: string, isComparison: boolean = false) =>
   const handleCompareCities = () => { 
     if (comparisonCity.trim() && data) { 
       setComparisonLoading(true);
-      // Apenas busca a previsão da cidade de comparação
       fetchForecast(comparisonCity); 
       console.log(`Comparando ${data.city} com ${comparisonCity}`); 
-      // Timeout para garantir que o loading desapareça
       setTimeout(() => setComparisonLoading(false), 3000);
     } 
   };
 
   const formatTrafficDelay = (delay: number) => delay <= 0 ? '0 minutos' : `${Math.round(delay)} minutos`;
-
-  const suggestedCities = [
-    "São Paulo", "Rio de Janeiro", "Belo Horizonte", "Porto Alegre", "Salvador",
-    "Brasília", "Fortaleza", "Manaus", "Curitiba", "Recife", "Goiânia", "Florianópolis",
-    "London", "Paris", "Berlin", "Madrid", "Rome",
-    "Tokyo", "Seoul", "Beijing", "New York", "Los Angeles"
-  ];
 
   const cityData = data ? { 
     longitude: data.longitude, 
@@ -262,7 +237,6 @@ const fetchSuggestions = async (query: string, isComparison: boolean = false) =>
             isSearching={loading}
             darkMode={darkMode}
             searchRef={mainSearchRef}
-            onInputChange={handleComparisonInputChange}
             onSelectSuggestion={selectMainSuggestion}
           />
           
@@ -300,7 +274,6 @@ const fetchSuggestions = async (query: string, isComparison: boolean = false) =>
             </div>
           )}
           
-          {/*Previsão do IQV com ML */}
           {data && !loading && !error && (
             <div style={{ marginBottom: '32px', backgroundColor: darkMode ? '#1e293b' : 'white', borderRadius: '12px', boxShadow: darkMode ? '0 4px 6px rgba(0, 0, 0, 0.3)' : '0 4px 6px rgba(0, 0, 0, 0.05)', overflow: 'hidden' }}>
               <div style={{ padding: '16px', borderBottom: darkMode ? '1px solid #334155' : '1px solid #e2e8f0' }}>
@@ -331,7 +304,6 @@ const fetchSuggestions = async (query: string, isComparison: boolean = false) =>
             </div>
           )}
           
-          {/* Seção de comparação de cidades - APENAS O CAMPO DE BUSCA */}
           {data && (
             <div style={{ 
               marginBottom: '32px',
@@ -370,9 +342,7 @@ const fetchSuggestions = async (query: string, isComparison: boolean = false) =>
                       <input
                         type="text"
                         value={comparisonCity}
-                        onChange={handleComparisonInputChange}
-                        onBlur={() => setTimeout(() => setShowComparisonSuggestions(false), 200)}
-                        onFocus={() => setShowComparisonSuggestions(true)}
+                        onChange={(e) => handleComparisonInputChange(e.target.value)}
                         placeholder="Ex: Rio de Janeiro"
                         style={{
                           padding: '8px 12px',
@@ -383,36 +353,6 @@ const fetchSuggestions = async (query: string, isComparison: boolean = false) =>
                           width: '100%'
                         }}
                       />
-                      {showComparisonSuggestions && comparisonSuggestions.length > 0 && (
-                        <div style={{
-                          position: 'absolute',
-                          top: '100%',
-                          left: 0,
-                          right: 0,
-                          backgroundColor: darkMode ? '#1e293b' : 'white',
-                          border: darkMode ? '1px solid #334155' : '1px solid #e2e8f0',
-                          borderRadius: '6px',
-                          maxHeight: '200px',
-                          overflowY: 'auto',
-                          zIndex: 1000,
-                          marginTop: '4px'
-                        }}>
-                          {comparisonSuggestions.map((suggestion, index) => (
-                            <div
-                              key={index}
-                              onClick={() => selectComparisonSuggestion(suggestion)}
-                              style={{
-                                padding: '8px 12px',
-                                cursor: 'pointer',
-                                borderBottom: darkMode ? '1px solid #334155' : '1px solid #e2e8f0',
-                                color: darkMode ? '#e2e8f0' : '#1e293b'
-                              }}
-                            >
-                              {suggestion}
-                            </div>
-                          ))}
-                        </div>
-                      )}
                     </div>
                     <button
                       onClick={handleCompareCities}
@@ -435,7 +375,6 @@ const fetchSuggestions = async (query: string, isComparison: boolean = false) =>
             </div>
           )}
           
-          {/* Gráfico de comparação apenas quando houver cidade para comparar */}
           {data && comparisonCity.trim() !== '' && (
             <div style={{ 
               marginBottom: '32px',
@@ -482,40 +421,38 @@ const fetchSuggestions = async (query: string, isComparison: boolean = false) =>
                 ) : (
                   <div style={{ marginTop: '16px' }}>
                     <CityComparison 
-                      cities={data ? [data.city, comparisonCity] : [data?.city || 'São Paulo', comparisonCity]}
-                      darkMode={darkMode}
-                    />
+                    cities={data ? [data.city, comparisonCity] : ['São Paulo', comparisonCity]}
+                    darkMode={darkMode}
+                    shouldFetch={true} // Force a busca de dados
+/>
                   </div>
                 )}
               </div>
             </div>
           )}
           
-          {/* Gráfico de temperaturas previstas para a cidade principal */}
           {data && forecast && forecast.length > 0 && (
             <div style={{ marginBottom: '32px', backgroundColor: darkMode ? '#1e293b' : 'white', borderRadius: '12px', boxShadow: darkMode ? '0 4px 6px rgba(0, 0, 0, 0.3)' : '0 4px 6px rgba(0, 0, 0, 0.05)', overflow: 'hidden' }}>
               <div style={{ padding: '16px', borderBottom: darkMode ? '1px solid #334155' : '1px solid #e2e8f0' }}>
                 <h2 style={{ fontSize: '1.5rem', fontWeight: '600', color: darkMode ? '#cbd5e1' : '#1e293b' }}>Temperaturas Previstas - {data.city}</h2>
               </div>
               <div style={{ padding: '16px' }}>
-                <ForecastChart data={forecast} darkMode={darkMode} />
+                <ForecastChart data={forecast || []} darkMode={darkMode} />
               </div>
             </div>
           )}
           
-          {/* Gráfico de temperaturas previstas para a cidade de comparação */}
           {comparisonCity && comparisonForecast && comparisonForecast.length > 0 && (
             <div style={{ marginBottom: '32px', backgroundColor: darkMode ? '#1e293b' : 'white', borderRadius: '12px', boxShadow: darkMode ? '0 4px 6px rgba(0, 0, 0, 0.3)' : '0 4px 6px rgba(0, 0, 0, 0.05)', overflow: 'hidden' }}>
               <div style={{ padding: '16px', borderBottom: darkMode ? '1px solid #334155' : '1px solid #e2e8f0' }}>
                 <h2 style={{ fontSize: '1.5rem', fontWeight: '600', color: darkMode ? '#cbd5e1' : '#1e293b' }}>Temperaturas Previstas - {comparisonCity}</h2>
               </div>
               <div style={{ padding: '16px' }}>
-                <ForecastChart data={comparisonForecast} darkMode={darkMode} />
+                <ForecastChart data={comparisonForecast || []} darkMode={darkMode} />
               </div>
             </div>
           )}
           
-          {/* Mensagem quando não há previsão para cidade de comparação */}
           {comparisonCity && !comparisonForecast && comparisonForecast !== null && (
             <div style={{ marginBottom: '32px', backgroundColor: darkMode ? '#1e293b' : 'white', borderRadius: '12px', boxShadow: darkMode ? '0 4px 6px rgba(0, 0, 0, 0.3)' : '0 4px 6px rgba(0, 0, 0, 0.05)', overflow: 'hidden' }}>
               <div style={{ padding: '16px', borderBottom: darkMode ? '1px solid #334155' : '1px solid #e2e8f0' }}>
