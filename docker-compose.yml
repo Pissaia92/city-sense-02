@@ -4,7 +4,7 @@ services:
   backend:
     build:
       context: ./backend
-      dockerfile: Dockerfile  # ← Mantenha como Dockerfile
+      dockerfile: Dockerfile  
     ports:
       - "8000:8000"
     env_file:
@@ -17,13 +17,13 @@ services:
   frontend:
     build:
       context: ./frontend
-      dockerfile: Dockerfile  # ← Mantenha como Dockerfile (NÃO Dockerfile.dev)
+      dockerfile: Dockerfile 
     ports:
       - "3000:80"
     environment:
       VITE_API_URL: http://backend:8000
     volumes:
-      - ./frontend:/app  # ← ESSE VOLUME É ESSENCIAL PARA VER AS MUDANÇAS
+      - ./frontend:/app  
     depends_on:
       - backend
     networks:

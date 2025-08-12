@@ -52,15 +52,14 @@ app = FastAPI(
 # Configurar CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
+    allow_origins=["https://vercel.com/carlos-pissaia-juniors-projects/my-webspace-qoot"],
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE"],
     allow_headers=["*"],
     expose_headers=["*"]
 )
 
-# =============== CONFIGURAÇÃO DO RATE LIMITING ===============
-# Vamos remover o slowapi por problemas de compatibilidade e usar uma abordagem mais simples
+
 RATE_LIMITING_ENABLED = False  # Desativado por enquanto devido a problemas com Pydantic v2
 
 # =============== FUNÇÕES E ENDPOINTS ===============
@@ -274,7 +273,7 @@ async def get_city_suggestions(q: str, limit: int = 15):
     """
     Retorna sugestões de cidades com base na query de busca
     """
-    # Lista completa de cidades (você pode expandir conforme necessário)
+    # Lista de cidades (expandível)
     all_cities = [
         "São Paulo", "Rio de Janeiro", "Belo Horizonte", "Porto Alegre", "Salvador",
         "Brasília", "Fortaleza", "Manaus", "Curitiba", "Recife", "Goiânia", "Florianópolis",
@@ -295,9 +294,9 @@ async def get_city_suggestions(q: str, limit: int = 15):
     # Filtrar cidades que contêm a query (case insensitive)
     suggestions = [city for city in all_cities if q.lower() in city.lower()]
     
-    # Remover duplicatas e manter ordem
-    unique_suggestions = list(dict.fromkeys(suggestions))
-    
+    # Remover duplicatas
+    unique_suggestions = list(set(suggestions))
+
     # Retornar máximo limit sugestões
     return unique_suggestions[:limit]
 
