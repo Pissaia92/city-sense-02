@@ -1,15 +1,12 @@
-# backend/pipelines/etl_traffic.py
 import os
 import requests
 import pandas as pd
 from datetime import datetime
 from pathlib import Path
 
-# Diretório de dados
 DATA_DIR = Path(__file__).parent.parent / "data"
 INPUT_FILE = DATA_DIR / "traffic_data.parquet"
 
-# Substitua pela sua chave da Google Maps
 GOOGLE_MAPS_API_KEY = "AIzaSyATVS2nG6GHem1e_C581bNJp1Z526QCqs4"
 
 # Rotas de exemplo em São Paulo

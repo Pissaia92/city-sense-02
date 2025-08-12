@@ -52,7 +52,7 @@ app = FastAPI(
 # Configurar CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://vercel.com/carlos-pissaia-juniors-projects/my-webspace-qoot"],
+    allow_origins=["https://city-sense.vercel.app/"],
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE"],
     allow_headers=["*"],

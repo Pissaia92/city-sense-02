@@ -33,7 +33,7 @@ export const CityComparison = ({
       }
       
       try {
-        const response = await fetch(`/api/iqv?city=${encodeURIComponent(cityName)}`);
+        const response = await fetch(`https://city-sense.vercel.app/api/iqv?city=${encodeURIComponent(cityName)}`);
         if (!response.ok) {
           if (response.status === 404) {
             setError(`Cidade "${cityName}" não encontrada`);
