@@ -1,10 +1,13 @@
 .env
+.env.local
 venv
 .venv/
 __pycache__/
 **/__pycache__/
 .vscode/
 .idea/
+node_modules/
+dist/
 *.pyc
 *.pyo
 *.pyd
