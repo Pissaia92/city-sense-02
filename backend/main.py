@@ -1,4 +1,3 @@
-# backend/main.py
 import os
 from dotenv import load_dotenv
 load_dotenv() 
@@ -55,9 +54,9 @@ app.add_middleware(
         "http://localhost:5173"
     ],
     allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE"],
+    allow_methods=["*"],  # ou ["GET", "POST"]
     allow_headers=["*"],
-    expose_headers=["*"]
+    expose_headers=["*"],
 )
 RATE_LIMITING_ENABLED = False  # Desativado por enquanto devido a problemas com Pydantic v2
 
