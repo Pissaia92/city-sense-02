@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useContext, useRef } from 'react';
+import { fetchUsers } from './api/api';
 import type { ForecastPoint } from './components/Types/types';
 import ForecastChart from './components/ForecastChart'; 
 import { DateTime } from 'luxon';
@@ -13,6 +14,9 @@ import { Footer } from './components/layout/Footer';
 import { ThemeContext, ThemeProvider } from './context/ThemeContext';
 import MapVisualization from './components/MapVisualization';
 import { CityComparison } from './components/CityComparison';
+
+// 🔥 Definição da URL base da API usando variável de ambiente
+const API_URL = import.meta.env.VITE_API_URL;
 
 interface IQVData {
   city: string;
@@ -76,7 +80,8 @@ const AppContent = () => {
       return;
     }
     try {
-      const response = await fetch(`/api/iqv?city=${encodeURIComponent(query)}`);
+      // ✅ Alterado: usa API_URL
+      const response = await fetch(`${API_URL}/api/iqv?city=${encodeURIComponent(query)}`);
       if (response.ok) {
         const suggestions = await response.json();
         if (isComparison) setComparisonSuggestions(suggestions);
@@ -113,9 +118,13 @@ const AppContent = () => {
   const fetchData = async (cityName: string) => {
     const formattedCity = cityName.trim().replace(/\s+/g, ' '); 
     if (!formattedCity) { setError('Por favor, insira uma cidade válida'); setLoading(false); return; }
-    try { setLoading(true); setError(null); setSearchTried(true); 
+    try { 
+      setLoading(true); 
+      setError(null); 
+      setSearchTried(true); 
       console.log(`🔍 Buscando dados para: ${formattedCity}`); 
-      const response = await fetch(`/api/iqv?city=${encodeURIComponent(formattedCity)}`, { 
+      // ✅ Alterado: usa API_URL
+      const response = await fetch(`${API_URL}/api/iqv?city=${encodeURIComponent(formattedCity)}`, { 
         signal: AbortSignal.timeout(10000) 
       }); 
       if (!response.ok) { 
@@ -128,21 +137,30 @@ const AppContent = () => {
       } 
       const result = await response.json(); 
       console.log('✅ Dados recebidos:', result); 
-      setData(result); setCity(formattedCity); 
+      setData(result); 
+      setCity(formattedCity); 
     } catch (err: any) { 
       console.error('🚨 Erro na busca:', err); 
-      if (err.name === 'AbortError') { setError('⏳ Tempo limite excedido. Tente novamente.'); } 
-      else if (err.message.includes('Failed to fetch')) { setError('🔌 Erro de conexão. Verifique se o backend está rodando em http://localhost:8000'); } 
-      else { setError(`⚠️ ${err.message || 'Erro inesperado ao carregar os dados'}`); } 
+      if (err.name === 'AbortError') { 
+        setError('⏳ Tempo limite excedido. Tente novamente.'); 
+      } else if (err.message.includes('Failed to fetch')) { 
+        setError('🔌 Erro de conexão. Verifique se o backend está rodando em https://seu-backend.onrender.com'); 
+      } else { 
+        setError(`⚠️ ${err.message || 'Erro inesperado ao carregar os dados'}`); 
+      } 
       setData(null); 
-    } finally { setLoading(false); }
+    } finally { 
+      setLoading(false); 
+    }
   };
 
   const fetchForecast = async (cityName?: string) => {
-    const cityToFetch = cityName || city; if (!cityToFetch) return;
+    const cityToFetch = cityName || city; 
+    if (!cityToFetch) return;
     try { 
       console.log(`🌤️ Buscando previsão para: ${cityToFetch}`); 
-      const response = await fetch(`/api/forecast?city=${encodeURIComponent(cityToFetch)}`, { 
+      // ✅ Alterado: usa API_URL
+      const response = await fetch(`${API_URL}/api/forecast?city=${encodeURIComponent(cityToFetch)}`, { 
         signal: AbortSignal.timeout(8000) 
       }); 
       if (!response.ok) { 
@@ -169,22 +187,39 @@ const AppContent = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  useEffect(() => { if (!searchTried) fetchData('São Paulo'); 
+  useEffect(() => { 
+    if (!searchTried) fetchData('São Paulo'); 
     const interval = setInterval(() => { if (city) fetchData(city); }, 60000); 
     return () => clearInterval(interval); 
   }, [city, searchTried]);
 
-  useEffect(() => { if (city) { fetchForecast(); 
-    const interval = setInterval(() => { fetchForecast(); if (comparisonCity) fetchForecast(comparisonCity); }, 300000); 
-    return () => clearInterval(interval); 
-  } }, [city, comparisonCity]);
+  useEffect(() => { 
+    if (city) { 
+      fetchForecast(); 
+      const interval = setInterval(() => { 
+        fetchForecast(); 
+        if (comparisonCity) fetchForecast(comparisonCity); 
+      }, 300000); 
+      return () => clearInterval(interval); 
+    } 
+  }, [city, comparisonCity]);
 
-  const handleSearch = async (e: React.FormEvent) => { e.preventDefault(); 
-    if (!inputCity.trim()) { setError('Por favor, insira uma cidade'); return; } 
-    setLoading(true); setError(null); await fetchData(inputCity); 
+  const handleSearch = async (e: React.FormEvent) => { 
+    e.preventDefault(); 
+    if (!inputCity.trim()) { 
+      setError('Por favor, insira uma cidade'); 
+      return; 
+    } 
+    setLoading(true); 
+    setError(null); 
+    await fetchData(inputCity); 
   };
 
-  const handleCitySelect = (selectedCity: string) => { setInputCity(selectedCity); fetchData(selectedCity); setShowSuggestions(false); };
+  const handleCitySelect = (selectedCity: string) => { 
+    setInputCity(selectedCity); 
+    fetchData(selectedCity); 
+    setShowSuggestions(false); 
+  };
 
   const handleCompareCities = () => { 
     if (comparisonCity.trim() && data) { 
@@ -205,9 +240,25 @@ const AppContent = () => {
     country: data.country 
   } : null;
 
-  useEffect(() => { if (city && data) { const fetchMLPrediction = async () => { try { const response = await fetch(`/api/predict/iqv?city=${encodeURIComponent(city)}`); if (response.ok) { const prediction = await response.json(); setMLPrediction(prediction); } } catch (err) { console.error('Erro ao buscar previsão do ML:', err); } }; fetchMLPrediction(); 
-    const interval = setInterval(fetchMLPrediction, 1800000); return () => clearInterval(interval); 
-  } }, [city, data]);
+  useEffect(() => { 
+    if (city && data) { 
+      const fetchMLPrediction = async () => { 
+        try { 
+          // ✅ Alterado: usa API_URL
+          const response = await fetch(`${API_URL}/api/predict/iqv?city=${encodeURIComponent(city)}`); 
+          if (response.ok) { 
+            const prediction = await response.json(); 
+            setMLPrediction(prediction); 
+          } 
+        } catch (err) { 
+          console.error('Erro ao buscar previsão do ML:', err); 
+        } 
+      }; 
+      fetchMLPrediction(); 
+      const interval = setInterval(fetchMLPrediction, 1800000); 
+      return () => clearInterval(interval); 
+    } 
+  }, [city, data]);
 
   return (
     <>
@@ -421,10 +472,10 @@ const AppContent = () => {
                 ) : (
                   <div style={{ marginTop: '16px' }}>
                     <CityComparison 
-                    cities={data ? [data.city, comparisonCity] : ['São Paulo', comparisonCity]}
-                    darkMode={darkMode}
-                    shouldFetch={true} // Force a busca de dados
-/>
+                      cities={data ? [data.city, comparisonCity] : ['São Paulo', comparisonCity]}
+                      darkMode={darkMode}
+                      shouldFetch={true}
+                    />
                   </div>
                 )}
               </div>

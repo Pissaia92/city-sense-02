@@ -4,10 +4,9 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "build": "vite build && tsc --emitDeclarationOnly --outDir dist/types",
-    "type-check": "tsc --noEmit"
-  },
-  "dependencies": {
+  "build": "vite build"
+},
+    "dependencies": {
     "@heroicons/react": "^2.2.0",
     "@types/chart.js": "^2.9.41",
     "chart.js": "^4.5.0",
