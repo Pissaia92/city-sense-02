@@ -4,9 +4,8 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-  "prebuild": "npm install typescript@latest --no-save",
-  "build": "node ./node_modules/typescript/lib/tsc.js -p tsconfig.json && vite build",
-  "postbuild": "rimraf node_modules/typescript"
+  "build": "vite build && tsc --emitDeclarationOnly --outDir dist/types",
+  "type-check": "tsc --noEmit"
 },
   "dependencies": {
     "@heroicons/react": "^2.2.0",
