@@ -2,7 +2,6 @@ import os
 from dotenv import load_dotenv
 load_dotenv() 
 from fastapi import FastAPI, HTTPException, Depends, Request, Response
-from fastapi.middleware.cors import CORSMiddleware
 from typing import Dict, List, Any, Callable, Union, Awaitable, Optional
 from datetime import datetime
 import logging
@@ -47,6 +46,8 @@ app = FastAPI(
         }
     ]
 )
+
+from fastapi.middleware.cors import CORSMiddleware
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -54,7 +55,7 @@ app.add_middleware(
         "http://localhost:5173"
     ],
     allow_credentials=True,
-    allow_methods=["*"],  # ou ["GET", "POST"]
+    allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["*"],
     expose_headers=["*"],
 )
