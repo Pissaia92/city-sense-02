@@ -36,7 +36,7 @@ const ForecastChart: React.FC<ForecastChartProps> = ({ data, darkMode }) => {
   // Processa os dados para o gráfico
   const chartData = {
     labels: data.map(item => {
-      const date = new Date(item.date * 1000); 
+      const date = new Date(Number(item.date) * 1000); 
       return date.toLocaleDateString('pt-BR', { 
         day: '2-digit', 
         month: 'short' 

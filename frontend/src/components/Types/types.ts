@@ -6,3 +6,8 @@ export interface ForecastPoint {
   maxTemperature: number;
   icon: string;
 }
+export interface IQVData {
+  id: string;
+  value: number;
+  status: string;
+  }
