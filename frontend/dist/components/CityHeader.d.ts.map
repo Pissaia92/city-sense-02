@@ -1,1 +1,0 @@
-{"version":3,"file":"CityHeader.d.ts","sourceRoot":"","sources":["../../src/components/CityHeader.tsx"],"names":[],"mappings":"AAGA,UAAU,eAAe;IACvB,IAAI,EAAE,GAAG,CAAC;IACV,aAAa,EAAE,MAAM,CAAC;IACtB,cAAc,EAAE,MAAM,MAAM,CAAC;IAC7B,QAAQ,CAAC,EAAE,OAAO,CAAC;CACpB;AAED,eAAO,MAAM,UAAU,GAAI,mDAA2D,eAAe,4CA4FpG,CAAC"}
