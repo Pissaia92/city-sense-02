@@ -48,21 +48,20 @@ app = FastAPI(
         }
     ]
 )
-
-# Configurar CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://city-sense.vercel.app"],
+    allow_origins=[
+        "https://city-sense-02.vercel.app",
+        "http://localhost:5173"
+    ],
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE"],
     allow_headers=["*"],
     expose_headers=["*"]
 )
-
-
 RATE_LIMITING_ENABLED = False  # Desativado por enquanto devido a problemas com Pydantic v2
 
-# =============== FUNÇÕES E ENDPOINTS ===============
+# == FUNÇÕES E ENDPOINTS ==
 
 def calculate_iqv(temperature: float, humidity: float, traffic_delay: float = 0) -> Dict[str, float]:
     """
@@ -299,6 +298,19 @@ async def get_city_suggestions(q: str, limit: int = 15):
 
     # Retornar máximo limit sugestões
     return unique_suggestions[:limit]
+
+@app.get("/")
+def home():
+    return {
+        "message": "🌍 City Sense API está online!",
+        "documentation": "/docs",
+        "health": "/api/health",
+        "endpoints": [
+            "/api/iqv?city=São%20Paulo",
+            "/api/forecast?city=São%20Paulo",
+            "/api/predict/iqv?city=São%20Paulo"
+        ]
+    }
 
 if __name__ == "__main__":
     import uvicorn
