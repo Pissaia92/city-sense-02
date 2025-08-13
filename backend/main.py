@@ -59,6 +59,26 @@ app.add_middleware(
     allow_headers=["*"],
     expose_headers=["*"],
 )
+@app.middleware("http")
+async def add_cors_headers(request: Request, call_next):
+    response = await call_next(request)
+    origin = request.headers.get('origin')
+    
+    # Permita o domínio do Vercel
+    allowed_origin = "https://city-sense-02.vercel.app"
+    if origin == allowed_origin:
+        response.headers["Access-Control-Allow-Origin"] = allowed_origin
+        response.headers["Access-Control-Allow-Credentials"] = "true"
+        response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
+        response.headers["Access-Control-Allow-Headers"] = "*"
+    
+    return response
+
+
+@app.options("/{rest_of_path:path}")
+async def options_handler(rest_of_path: str):
+    """Manipula requisições OPTIONS para CORS pré-voo"""
+    return {"message": "OK"}
 RATE_LIMITING_ENABLED = False  # Desativado por enquanto devido a problemas com Pydantic v2
 
 # == FUNÇÕES E ENDPOINTS ==
