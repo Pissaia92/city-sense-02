@@ -4,9 +4,10 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "build": "rd /s /q dist 2>nul || exit 0 && npm install typescript && tsc -p tsconfig.json && vite build",
-    "postinstall": "npm install typescript"
-  },
+  "prebuild": "npm install typescript@latest --no-save",
+  "build": "node ./node_modules/typescript/lib/tsc.js -p tsconfig.json && vite build",
+  "postbuild": "rimraf node_modules/typescript"
+},
   "dependencies": {
     "@heroicons/react": "^2.2.0",
     "@types/chart.js": "^2.9.41",
@@ -24,6 +25,7 @@
     "@types/react": "^18.2.15",
     "@types/react-dom": "^18.2.7",
     "@vitejs/plugin-react": "^4.0.3",
+    "rimraf": "^6.0.1",
     "typescript": "^5.9.2",
     "vite": "^7.0.6"
   }

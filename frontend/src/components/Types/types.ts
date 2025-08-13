@@ -7,7 +7,6 @@ export interface ForecastPoint {
   icon: string;
 }
 export interface IQVData {
-  id: string;
-  value: number;
-  status: string;
-  }
+  description: string;
+  iqv_trend: number;
+}

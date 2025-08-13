@@ -5,11 +5,7 @@
     "use": "@vercel/static-build",
     "config": {
       "distDir": "dist",
-      "installCommand": "npm install --unsafe-perm"
+      "installCommand": "npm install --ignore-scripts --unsafe-perm"
     }
-  }],
-  "routes": [{
-    "src": "/(.*)",
-    "dest": "/dist/index.html"
   }]
 }

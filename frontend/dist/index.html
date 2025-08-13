@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="pt">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Carlos' City Sense</title>
+    <script type="module" crossorigin src="/assets/index-dAvhV24J.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-MGNviBeR.css">
+  </head>
+  <script>
+  // Verifica a preferência do sistema e aplica imediatamente
+  const saved = localStorage.getItem('city-sense-dark-mode');
+  const isDark = saved !== null ? JSON.parse(saved) : window.matchMedia('(prefers-color-scheme: dark)').matches;
+  if (isDark) {
+    document.documentElement.classList.add('dark');
+  }
+</script>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>
