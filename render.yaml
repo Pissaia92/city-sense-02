@@ -1,9 +1,8 @@
 services:
   - type: web
-    name: city-sense-backend
-    env: python
+    name: meu-backend
+    runtime: python
+    python:
+      version: "3.10.11"
     buildCommand: pip install -r requirements.txt
-    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
-    pythonVersion: 3.10
-    rootDir: backend
-    autoDeploy: true
+    startCommand: uvicorn main:app --host 0.0.0.0 --port 10000
