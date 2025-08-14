@@ -33,7 +33,7 @@ export const CityComparison = ({
       }
       
       try {
-        const response = await fetch(`https://city-sense.vercel.app/api/iqv?city=${encodeURIComponent(cityName)}`);
+        const response = await fetch(`https://city-sense.onrender.com/api/iqv?city=${encodeURIComponent(cityName)}`);
         if (!response.ok) {
           if (response.status === 404) {
             setError(`Cidade "${cityName}" não encontrada`);
@@ -42,6 +42,7 @@ export const CityComparison = ({
           throw new Error(`Erro ${response.status}`);
         }
         const data = await response.json();
+        console.log('Dados brutos da API:', data);
         setComparisonCache(prev => ({ ...prev, [cityName]: data }));
         return data;
       } catch (error) {
@@ -60,11 +61,11 @@ export const CityComparison = ({
         const promises = cities.map(city => fetchDataWithCache(city));
         const results = await Promise.all(promises);
         
-        const validResults = results.filter(Boolean) as any[];
-        if (validResults.length < 2) {
-          setError('Dados insuficientes para comparação');
-          return;
-        }
+        const validResults = results.filter(result => 
+        result && 
+        typeof result.iqv_overall !== 'undefined' &&
+        typeof result.city !== 'undefined'
+      );
 
         // Formatação dos dados
         const formattedData = validResults.map(cityData => ({
