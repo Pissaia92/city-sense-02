@@ -52,7 +52,7 @@ from fastapi.middleware.cors import CORSMiddleware
 async def add_cors_headers(request: Request, call_next):
     response = await call_next(request)
     origin = request.headers.get('origin')    
-    allowed_origin = "https://city-sense-02.vercel.app"
+    allowed_origin = "https://city-sense.vercel.app"
     if origin == allowed_origin:
         response.headers["Access-Control-Allow-Origin"] = allowed_origin
         response.headers["Access-Control-Allow-Credentials"] = "true"
