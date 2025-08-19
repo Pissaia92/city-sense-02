@@ -15,7 +15,6 @@ import { ThemeContext, ThemeProvider } from './context/ThemeContext';
 import MapVisualization from './components/MapVisualization';
 import { CityComparison } from './components/CityComparison';
 
-// 🔥 Definição da URL base da API usando variável de ambiente
 const API_URL = import.meta.env.VITE_API_URL;
 
 interface IQVData {
@@ -80,7 +79,6 @@ const AppContent = () => {
       return;
     }
     try {
-      // ✅ Alterado: usa API_URL
       const response = await fetch(`${API_URL}/api/iqv?city=${encodeURIComponent(query)}`);
       if (response.ok) {
         const suggestions = await response.json();
@@ -88,7 +86,7 @@ const AppContent = () => {
         else setMainSuggestions(suggestions);
       }
     } catch (error) {
-      console.error('Erro ao buscar sugestões:', error);
+      console.error('Error fetching suggestions:', error);
       if (isComparison) setComparisonSuggestions([]);
       else setMainSuggestions([]);
     }
@@ -117,36 +115,35 @@ const AppContent = () => {
 
   const fetchData = async (cityName: string) => {
     const formattedCity = cityName.trim().replace(/\s+/g, ' '); 
-    if (!formattedCity) { setError('Por favor, insira uma cidade válida'); setLoading(false); return; }
+    if (!formattedCity) { setError('Please enter a valid city'); setLoading(false); return; }
     try { 
       setLoading(true); 
       setError(null); 
       setSearchTried(true); 
-      console.log(`🔍 Buscando dados para: ${formattedCity}`); 
-      // ✅ Alterado: usa API_URL
+      console.log(`🔍 Fetching data for: ${formattedCity}`);
       const response = await fetch(`${API_URL}/api/iqv?city=${encodeURIComponent(formattedCity)}`, { 
         signal: AbortSignal.timeout(10000) 
       }); 
       if (!response.ok) { 
         const errorData = await response.json().catch(() => null); 
-        const errorMessage = errorData?.detail || `Erro ${response.status}: ${response.statusText}`; 
-        if (response.status === 404 && errorMessage.toLowerCase().includes('não encontrada')) { 
-          setError(`❌ Cidade "${formattedCity}" não encontrada. Verifique o nome e tente novamente.`); 
+        const errorMessage = errorData?.detail || `Error ${response.status}: ${response.statusText}`; 
+        if (response.status === 404 && errorMessage.toLowerCase().includes('not found')) { 
+          setError(`❌ City "${formattedCity}" not found. Check the name and try again.`); 
         } else { setError(`⚠️ ${errorMessage}`); } 
         setData(null); return; 
       } 
       const result = await response.json(); 
-      console.log('✅ Dados recebidos:', result); 
+      console.log('✅ Data received:', result); 
       setData(result); 
       setCity(formattedCity); 
     } catch (err: any) { 
-      console.error('🚨 Erro na busca:', err); 
+      console.error('🚨 Error fetching data:', err); 
       if (err.name === 'AbortError') { 
-        setError('⏳ Tempo limite excedido. Tente novamente.'); 
+        setError('⏳ Timeout exceeded. Please try again.'); 
       } else if (err.message.includes('Failed to fetch')) { 
-        setError('🔌 Erro de conexão. Verifique se o backend está rodando em https://seu-backend.onrender.com'); 
+        setError('🔌 Connection error. Please check if the backend is running at https://dashboard.render.com/web/srv-d2ee2fidbo4c738b8dd0'); 
       } else { 
-        setError(`⚠️ ${err.message || 'Erro inesperado ao carregar os dados'}`); 
+        setError(`⚠️ ${err.message || 'Unexpected error loading data'}`); 
       } 
       setData(null); 
     } finally { 
@@ -158,22 +155,21 @@ const AppContent = () => {
     const cityToFetch = cityName || city; 
     if (!cityToFetch) return;
     try { 
-      console.log(`🌤️ Buscando previsão para: ${cityToFetch}`); 
-      // ✅ Alterado: usa API_URL
+      console.log(`🌤️ Fetching forecast for: ${cityToFetch}`); 
       const response = await fetch(`${API_URL}/api/forecast?city=${encodeURIComponent(cityToFetch)}`, { 
         signal: AbortSignal.timeout(8000) 
       }); 
       if (!response.ok) { 
         const errorData = await response.json().catch(() => null); 
-        const errorMessage = errorData?.detail || `Erro ${response.status}: ${response.statusText}`; 
-        console.warn('⚠️ Previsão não disponível:', errorMessage); 
+        const errorMessage = errorData?.detail || `Error ${response.status}: ${response.statusText}`; 
+        console.warn('⚠️ Forecast not available:', errorMessage); 
         if (cityName === comparisonCity) setComparisonForecast(null); else setForecast(null); return; 
       } 
       const result = await response.json(); 
-      console.log('🌤️ Previsão carregada:', result.forecast); 
+      console.log('🌤️ Loaded forecast:', result.forecast); 
       if (cityName === comparisonCity) setComparisonForecast(result.forecast); else setForecast(result.forecast); 
     } catch (err) { 
-      console.error('⚠️ Erro na previsão:', err); 
+      console.error('⚠️ Error fetching forecast:', err); 
       if (cityName === comparisonCity) setComparisonForecast(null); else setForecast(null); 
     }
   };
@@ -207,7 +203,7 @@ const AppContent = () => {
   const handleSearch = async (e: React.FormEvent) => { 
     e.preventDefault(); 
     if (!inputCity.trim()) { 
-      setError('Por favor, insira uma cidade'); 
+      setError('Please enter a city'); 
       return; 
     } 
     setLoading(true); 
@@ -243,15 +239,14 @@ const AppContent = () => {
   useEffect(() => { 
     if (city && data) { 
       const fetchMLPrediction = async () => { 
-        try { 
-          // ✅ Alterado: usa API_URL
+        try {           
           const response = await fetch(`${API_URL}/api/predict/iqv?city=${encodeURIComponent(city)}`); 
           if (response.ok) { 
             const prediction = await response.json(); 
             setMLPrediction(prediction); 
           } 
         } catch (err) { 
-          console.error('Erro ao buscar previsão do ML:', err); 
+          console.error('Error fetching ML forecast:', err); 
         } 
       }; 
       fetchMLPrediction(); 
@@ -303,8 +298,8 @@ const AppContent = () => {
               boxShadow: darkMode ? '0 4px 6px rgba(0, 0, 0, 0.3)' : '0 4px 6px rgba(0, 0, 0, 0.05)'
             }}>
               <div style={{ fontSize: '3rem', marginBottom: '16px', animation: 'pulse 2s infinite' }}>🌍</div>
-              <h2 style={{ fontSize: '1.5rem', color: darkMode ? '#cbd5e1' : '#475569', marginBottom: '8px' }}>Carregando cidade inicial</h2>
-              <p style={{ color: darkMode ? '#94a3b8' : '#64748b' }}>Buscando dados para São Paulo...</p>
+              <h2 style={{ fontSize: '1.5rem', color: darkMode ? '#cbd5e1' : '#475569', marginBottom: '8px' }}>Loading initial city</h2>
+              <p style={{ color: darkMode ? '#94a3b8' : '#64748b' }}>Fetching data for São Paulo...</p>
               <style>{`@keyframes pulse { 0% { opacity: 0.6; } 50% { opacity: 1; } 100% { opacity: 0.6; } }`}</style>
             </div>
           )}
@@ -328,27 +323,27 @@ const AppContent = () => {
           {data && !loading && !error && (
             <div style={{ marginBottom: '32px', backgroundColor: darkMode ? '#1e293b' : 'white', borderRadius: '12px', boxShadow: darkMode ? '0 4px 6px rgba(0, 0, 0, 0.3)' : '0 4px 6px rgba(0, 0, 0, 0.05)', overflow: 'hidden' }}>
               <div style={{ padding: '16px', borderBottom: darkMode ? '1px solid #334155' : '1px solid #e2e8f0' }}>
-                <h2 style={{ fontSize: '1.5rem', fontWeight: '600', color: darkMode ? '#cbd5e1' : '#1e293b' }}>Previsão de IQV com M.L.</h2>
+                <h2 style={{ fontSize: '1.5rem', fontWeight: '600', color: darkMode ? '#cbd5e1' : '#1e293b' }}>QoL Prediction with M.L.</h2>
               </div>
               <div style={{ padding: '16px' }}>
                 {mlPrediction ? (
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
                     <div>
-                      <h3 style={{ color: darkMode ? '#cbd5e1' : '#1e293b', marginBottom: '10px' }}>IQV Atual</h3>
+                      <h3 style={{ color: darkMode ? '#cbd5e1' : '#1e293b', marginBottom: '10px' }}>Actual QoL</h3>
                       <div style={{ fontSize: '2.5rem', fontWeight: 'bold', color: getIQVColor(data.iqv_overall, darkMode) }}>{data.iqv_overall.toFixed(1)}</div>
                     </div>
                     <div>
-                      <h3 style={{ color: darkMode ? '#cbd5e1' : '#1e293b', marginBottom: '10px' }}>IQV Previsto</h3>
+                      <h3 style={{ color: darkMode ? '#cbd5e1' : '#1e293b', marginBottom: '10px' }}>Predicted QoL</h3>
                       <div style={{ fontSize: '2.5rem', fontWeight: 'bold', color: getIQVColor(mlPrediction.predicted_iqv, darkMode) }}>{mlPrediction.predicted_iqv.toFixed(1)}</div>
                       <p style={{ color: darkMode ? '#94a3b8' : '#64748b', marginTop: '5px' }}>
-                        {mlPrediction.predicted_iqv > data.iqv_overall ? "📈 Tendência positiva" : mlPrediction.predicted_iqv < data.iqv_overall ? "📉 Tendência negativa" : "➡️ Estabilidade"}
+                        {mlPrediction.predicted_iqv > data.iqv_overall ? "📈 Positive trend" : mlPrediction.predicted_iqv < data.iqv_overall ? "📉 Negative trend" : "➡️ Stability"}
                       </p>
                     </div>
                   </div>
                 ) : (
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '20px' }}>
                     <div style={{ fontSize: '2rem', marginBottom: '10px', color: darkMode ? '#94a3b8' : '#64748b' }}>🤖</div>
-                    <p style={{ color: darkMode ? '#94a3b8' : '#64748b', textAlign: 'center' }}>Processando previsão do IQV com machine learning...</p>
+                    <p style={{ color: darkMode ? '#94a3b8' : '#64748b', textAlign: 'center' }}>Processing QoL prediction with machine learning...</p>
                   </div>
                 )}
               </div>
@@ -372,7 +367,7 @@ const AppContent = () => {
                   fontWeight: '600',
                   color: darkMode ? '#cbd5e1' : '#1e293b'
                 }}>
-                  Comparação de Cidades
+                  City Comparator
                 </h2>
               </div>
               <div style={{ padding: '16px' }}>
@@ -387,7 +382,7 @@ const AppContent = () => {
                       fontWeight: '600',
                       color: darkMode ? '#e2e8f0' : '#1e293b'
                     }}>
-                      Digite a cidade para comparação:
+                      Enter city for comparison:
                     </span>
                     <div ref={comparisonSearchRef} style={{ position: 'relative', flex: 1 }}>
                       <input
@@ -443,7 +438,7 @@ const AppContent = () => {
                   fontWeight: '600',
                   color: darkMode ? '#cbd5e1' : '#1e293b'
                 }}>
-                  Comparação de Cidades
+                  City comparator
                 </h2>
               </div>
               <div style={{ padding: '16px' }}>
@@ -466,7 +461,7 @@ const AppContent = () => {
                       color: darkMode ? '#94a3b8' : '#64748b',
                       textAlign: 'center'
                     }}>
-                      Carregando comparação...
+                      Loading comparison...
                     </p>
                   </div>
                 ) : (
