@@ -1,39 +1,38 @@
-# City Sense - Índice de Qualidade de Vida Urbana
+# City Sense - Urban Quality of Life Index
 
-Descrição: Aplicação web que analisa e compara a qualidade de vida em diferentes cidades, fornecendo métricas detalhadas sobre clima, umidade, trânsito e tendências climáticas.
-É um projeto aberto que permite a implementação de variadas funcionalidades de acordo com o objetivo de utilização.
-Acessível em: https://city-sense.vercel.app/
+Description: Web application that analyzes and compares the quality of life in different cities, providing detailed metrics on climate, humidity, traffic, and weather trends.
+It is an open-source project that allows for the implementation of various features depending on the intended use. Accessible at: https://city-sense.vercel.app/
 
-Tecnologias Utilizadas:
+Technologies Used:
 
 ## Frontend:
-React + TypeScript - Framework principal
+React + TypeScript - Core Framework
 
-Vite - Build tool e desenvolvimento para carregamento ultrarrápido
+Vite - Build tool and development for ultra-fast loading
 
-Recharts - Visualização de dados
+Recharts - Data Visualization
 
-Tailwind CSS - Estilização
+Tailwind CSS - Styling
 
-Luxon - Manipulação de datas
+Luxon - Date Manipulation
 
 ## Backend:
-API REST: FastAPI para endpoints escaláveis com autenticação JWT (opcional)
+REST API: FastAPI for scalable endpoints with JWT authentication (optional)
 
-Machine Learning: Modelos scikit-learn para previsão de qualidade de vida
+Machine Learning: Scikit-learn models for quality of life prediction
 
-Validação de Dados: Pydantic para schemas type-safe
+Data Validation: Pydantic for type-safe schemas
 
-Deploy CI/CD: Pipelines automatizadas no Render
+Deployment CI/CD: Automated pipelines in Render
 
-### Funcionalidades:
+### Features:
 
-Análise detalhada do IQV por cidade
+Detailed QoL analysis by city
 
-Comparação entre cidades
+City Comparison
 
-Previsão de IQV com machine learning
+QoL forecasting with machine learning
 
-Gráficos interativos de comparação
+Interactive comparison charts
 
-Modo claro/escuro
+Light/Dark Mode
