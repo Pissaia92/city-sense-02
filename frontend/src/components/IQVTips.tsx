@@ -9,26 +9,26 @@ export const IQVTips = ({ data, darkMode = false }: IQVTipsProps) => {
   const tips = [
     {
       condition: data.iqv_climate < 5,
-      title: "Clima extremo",
-      description: "A temperatura está muito fora do ideal. Considere ajustar suas atividades ao ar livre.",
+      title: "Extreme Forecast",
+      description: "The temperature is distant from ideal. Consider adjusting your outdoor activities.",
       icon: "🌡️"
     },
     {
       condition: data.iqv_humidity < 5,
-      title: "Umidade desfavorável",
-      description: "A umidade está muito alta/baixa para o conforto ideal. Mantenha-se hidratado e use roupas adequadas.",
+      title: "Unfavorable Humidity",
+      description: "Humidity is too high/low for ideal comfort. Stay hydrated and wear appropriate clothing.",
       icon: "💧"
     },
     {
       condition: data.iqv_traffic < 5,
-      title: "Trânsito intenso",
-      description: "Espera-se trânsito intenso. Planeje suas viagens com antecedência e considere opções alternativas.",
+      title: "Heavy Traffic",
+      description: "Heavy traffic is expected. Plan your trips in advance and consider alternative options.",
       icon: "🚦"
     },
     {
       condition: data.iqv_trend < 5,
-      title: "Tendência negativa",
-      description: "A tendência climática está se deteriorando. Fique atento às atualizações meteorológicas.",
+      title: "Negative Trend",
+      description: "The climate trend is deteriorating. Stay tuned for weather updates.",
       icon: "📉"
     }
   ].filter(tip => tip.condition);
@@ -47,7 +47,7 @@ export const IQVTips = ({ data, darkMode = false }: IQVTipsProps) => {
         marginBottom: '16px',
         color: darkMode ? '#f1f5f9' : '#1e293b'
       }}>
-        Dicas para {data.city}
+        Tips for {data.city}
       </h2>
       
       {tips.length > 0 ? (
@@ -95,7 +95,7 @@ export const IQVTips = ({ data, darkMode = false }: IQVTipsProps) => {
             color: darkMode ? '#cbd5e1' : '#475569',
             margin: 0
           }}>
-            🎯 Condições climáticas ideais para atividades ao ar livre!
+            🎯 Ideal weather conditions for outdoor activities!
           </p>
         </div>
       )}

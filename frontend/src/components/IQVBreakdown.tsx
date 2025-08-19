@@ -6,7 +6,7 @@ interface IQVBreakdownProps {
 export const IQVBreakdown = ({ data, darkMode = false }: IQVBreakdownProps) => {
   const metrics = [
     {
-      name: "Temperatura",
+      name: "Temperature",
       value: data.temperature,
       unit: "°C",
       ideal: "22.5°C",
@@ -48,7 +48,7 @@ export const IQVBreakdown = ({ data, darkMode = false }: IQVBreakdownProps) => {
         marginBottom: '20px',
         color: darkMode ? '#f1f5f9' : '#1e293b'
       }}>
-        Análise Detalhada do IQV
+        Detailed QoL Analysis
       </h2>
       
       {metrics.map((metric, index) => (
@@ -93,8 +93,8 @@ export const IQVBreakdown = ({ data, darkMode = false }: IQVBreakdownProps) => {
             fontSize: '0.75rem',
             color: darkMode ? '#94a3b8' : '#64748b'
           }}>
-            <span>Condição atual</span>
-            <span>Condição ideal: {metric.ideal}</span>
+            <span>Current condition</span>
+            <span>Ideal condition: {metric.ideal}</span>
           </div>
         </div>
       ))}

@@ -4,14 +4,14 @@ const NotificationSystem = () => {
   const [notifications, setNotifications] = useState<any[]>([]);
   
   useEffect(() => {
-    // Registra um listener para notificações do backend
+    // Registers a listener for notifications from the backend
     const eventSource = new EventSource('/api/notifications');
     
     eventSource.onmessage = (event) => {
       const notification = JSON.parse(event.data);
       setNotifications(prev => [notification, ...prev.slice(0, 4)]);
       
-      // Mostra notificação do sistema
+      // Shows system notification
       if (Notification.permission === 'granted') {
         new Notification('City Sense', {
           body: notification.message,
@@ -23,7 +23,7 @@ const NotificationSystem = () => {
     return () => eventSource.close();
   }, []);
   
-  // Solicita permissão para notificações
+  // Requires permission for notifications
   useEffect(() => {
     if ('Notification' in window) {
       Notification.requestPermission();

@@ -1,4 +1,3 @@
-// frontend/src/components/ForecastChart.tsx
 import React from 'react';
 import { Line } from 'react-chartjs-2';
 import { Chart, registerables } from 'chart.js';
@@ -28,12 +27,12 @@ const ForecastChart: React.FC<ForecastChartProps> = ({ data, darkMode }) => {
         alignItems: 'center',
         justifyContent: 'center'
       }}>
-        <p>Nenhum dado disponível</p>
+        <p>No data available</p>
       </div>
     );
   }
 
-  // Processa os dados para o gráfico
+  // Process data for the chart
   const chartData = {
     labels: data.map(item => {
       const date = new Date(Number(item.date) * 1000); 
@@ -45,7 +44,7 @@ const ForecastChart: React.FC<ForecastChartProps> = ({ data, darkMode }) => {
     
     datasets: [
       {
-        label: 'Temperatura Média',
+        label: 'Average Temperature',
         data: data.map(item => item.temperature),
         borderColor: darkMode ? '#3b82f6' : '#1d4ed8',
         backgroundColor: darkMode ? 'rgba(59, 130, 246, 0.1)' : 'rgba(29, 78, 216, 0.1)',
@@ -59,7 +58,7 @@ const ForecastChart: React.FC<ForecastChartProps> = ({ data, darkMode }) => {
         pointBorderWidth: 2,
       },
       {
-        label: 'Temperatura Mínima',
+        label: 'Minimum Temperature',
         data: data.map(item => item.minTemperature),
         borderColor: darkMode ? '#eab308' : '#fbbf24',
         backgroundColor: darkMode ? 'rgba(234, 179, 8, 0.1)' : 'rgba(251, 191, 36, 0.1)',
@@ -70,7 +69,7 @@ const ForecastChart: React.FC<ForecastChartProps> = ({ data, darkMode }) => {
         borderWidth: 1
       },
       {
-        label: 'Temperatura Máxima',
+        label: 'Maximum Temperature',
         data: data.map(item => item.maxTemperature),
         borderColor: darkMode ? '#ff7f50' : '#ff5722',
         backgroundColor: darkMode ? 'rgba(255, 127, 80, 0.1)' : 'rgba(255, 87, 34, 0.1)',
@@ -82,7 +81,6 @@ const ForecastChart: React.FC<ForecastChartProps> = ({ data, darkMode }) => {
       }
     ]
   };
-
 
   return (
     <div style={{ 
@@ -129,7 +127,7 @@ const ForecastChart: React.FC<ForecastChartProps> = ({ data, darkMode }) => {
           y: {
             title: {
               display: true,
-              text: 'Temperatura (°C)',
+              text: 'Temperature (°C)',
               color: darkMode ? '#cbd5e1' : '#1e293b'
             },
             ticks: {

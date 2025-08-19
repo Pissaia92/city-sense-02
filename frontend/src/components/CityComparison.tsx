@@ -36,18 +36,18 @@ export const CityComparison = ({
         const response = await fetch(`https://city-sense.onrender.com/api/iqv?city=${encodeURIComponent(cityName)}`);
         if (!response.ok) {
           if (response.status === 404) {
-            setError(`Cidade "${cityName}" não encontrada`);
+            setError(`City "${cityName}" not found`);
             return null;
           }
           throw new Error(`Erro ${response.status}`);
         }
         const data = await response.json();
-        console.log('Dados brutos da API:', data);
+        console.log('Raw API data:', data);
         setComparisonCache(prev => ({ ...prev, [cityName]: data }));
         return data;
       } catch (error) {
-        console.error('Erro ao buscar dados:', error);
-        setError('Erro ao carregar dados de comparação');
+        console.error('Error fetching data:', error);
+        setError('Error loading comparison data');
         return null;
       }
     };
@@ -77,11 +77,11 @@ export const CityComparison = ({
         }));
 
         setData(formattedData);
-        console.log('Dados formatados:', formattedData); // Para depuração
+        console.log('Formatted data:', formattedData); // For debugging
         setHasFetched(true);
       } catch (error) {
-        console.error('Erro ao buscar dados:', error);
-        setError('Erro ao processar comparação');
+        console.error('Error fetching data:', error);
+        setError('Error processing comparison');
       } finally {
         setLoading(false);
       }
@@ -99,7 +99,7 @@ export const CityComparison = ({
         textAlign: 'center',
         color: darkMode ? '#e2e8f0' : '#1e293b'
       }}>
-        Carregando comparação...
+        Loading comparison...
       </div>
     );
   }
@@ -123,7 +123,7 @@ export const CityComparison = ({
         textAlign: 'center',
         color: darkMode ? '#e2e8f0' : '#1e293b'
       }}>
-        Nenhum dado disponível para comparação
+        No data available for comparison
       </div>
     );
   }
@@ -150,7 +150,7 @@ export const CityComparison = ({
         fontSize: '1.25rem',
         fontWeight: '600'
       }}>
-        Comparação Detalhada
+        Detailed Comparison
       </h2>
       
       <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
@@ -161,7 +161,7 @@ export const CityComparison = ({
             fontSize: '1rem',
             fontWeight: '500'
           }}>
-            Índice de Qualidade de Vida (IQV)
+            Quality of Life index (QoL)
           </h3>
           <ResponsiveContainer
             width="100%"

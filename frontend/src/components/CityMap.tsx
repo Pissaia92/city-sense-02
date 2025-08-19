@@ -1,4 +1,3 @@
-// src/components/CityMap.tsx
 import React, { useEffect, useRef } from 'react';
 import maplibregl, { Map as MapType } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
@@ -15,19 +14,19 @@ export const CityMap = ({ city, temperature, iqv }: CityMapProps) => {
   
   useEffect(() => {
     if (!mapContainer.current) return;
-    
-    // Configuração inicial do mapa
+
+    // Initial map setup
     map.current = new maplibregl.Map({
       container: mapContainer.current,
       style: 'https://api.maptiler.com/maps/streets/style.json?key=get_your_own_D6rA4zTHduk6KOKm6K9g',
-      center: [-46.633309, -23.55052], // São Paulo por padrão
+      center: [-46.633309, -23.55052], // São Paulo by default
       zoom: 10
     });
-    
-    // Adiciona controles de navegação
+
+    // Add navigation controls
     map.current.addControl(new maplibregl.NavigationControl(), 'top-right');
-    
-    // Quando o componente for desmontado
+
+    // Cleanup on component unmount
     return () => {
       if (map.current) {
         map.current.remove();
@@ -38,26 +37,26 @@ export const CityMap = ({ city, temperature, iqv }: CityMapProps) => {
   
   useEffect(() => {
     if (!map.current || !city) return;
-    
-    // Busca coordenadas da cidade
+
+    // Fetch city coordinates
     fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(city)}&format=json&limit=1`)
       .then(response => response.json())
       .then(data => {
         if (data && data.length > 0) {
           const [lon, lat] = [parseFloat(data[0].lon), parseFloat(data[0].lat)];
-          
-          // Atualiza a visão do mapa
+
+          // Update map view
           if (map.current) {
             map.current.setCenter([lon, lat]);
             map.current.setZoom(12);
-            
-            // Remove marcadores anteriores
+
+            // Remove previous markers
             if (map.current.getLayer('city-marker')) {
               map.current.removeLayer('city-marker');
               map.current.removeSource('city-marker');
             }
             
-            // Adiciona novo marcador
+            // Add new marker
             map.current.addSource('city-marker', {
               type: 'geojson',
               data: {
@@ -82,7 +81,7 @@ export const CityMap = ({ city, temperature, iqv }: CityMapProps) => {
               }
             });
             
-            // Adiciona popup com informações
+            // Add popup with information
             new maplibregl.Popup({ offset: 25 })
               .setLngLat([lon, lat])
               .setHTML(`
@@ -97,7 +96,7 @@ export const CityMap = ({ city, temperature, iqv }: CityMapProps) => {
         }
       })
       .catch(error => {
-        console.error('Erro ao buscar coordenadas:', error);
+        console.error('Error fetching coordinates:', error);
       });
   }, [city, temperature, iqv]);
   
@@ -121,7 +120,7 @@ export const CityMap = ({ city, temperature, iqv }: CityMapProps) => {
         borderRadius: '20px',
         fontSize: '0.8rem'
       }}>
-        Dados climáticos integrados ao mapa
+        Climate data integrated into the map
       </div>
     </div>
   );

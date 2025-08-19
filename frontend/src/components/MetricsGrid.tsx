@@ -9,27 +9,27 @@ interface MetricsGridProps {
 export const MetricsGrid = ({ data, formatTrafficDelay, darkMode = false }: MetricsGridProps) => {
   const metrics = [
     {
-      title: "IQV Geral",
+      title: "QoL General",
       value: data.iqv_overall,
-      description: "Índice geral de qualidade de vida",
+      description: "General quality of life index",
       color: data.iqv_overall >= 7 ? '#10b981' : data.iqv_overall >= 5 ? '#eab308' : '#ef4444'
     },
     {
-      title: "IQV Clima",
+      title: "QoL Climate",
       value: data.iqv_climate,
-      description: "Qualidade do clima local",
+      description: "Local weather quality",
       color: data.iqv_climate >= 7 ? '#10b981' : data.iqv_climate >= 5 ? '#eab308' : '#ef4444'
     },
     {
-      title: "IQV Umidade",
+      title: "QoL Humidity",
       value: data.iqv_humidity,
-      description: "Nível de conforto da umidade",
+      description: "Humidity comfort level",
       color: data.iqv_humidity >= 7 ? '#10b981' : data.iqv_humidity >= 5 ? '#eab308' : '#ef4444'
     },
     {
-      title: "IQV Trânsito",
+      title: "QoL Traffic",
       value: data.iqv_traffic,
-      description: "Qualidade do trânsito",
+      description: "Traffic quality",
       color: data.iqv_traffic >= 7 ? '#10b981' : data.iqv_traffic >= 5 ? '#eab308' : '#ef4444'
     }
   ];
@@ -47,7 +47,7 @@ export const MetricsGrid = ({ data, formatTrafficDelay, darkMode = false }: Metr
         marginBottom: '20px',
         color: darkMode ? '#f1f5f9' : '#1e293b'
       }}>
-        Métricas Detalhadas
+        Detailed Metrics
       </h2>
       
       <div style={{
@@ -108,7 +108,7 @@ export const MetricsGrid = ({ data, formatTrafficDelay, darkMode = false }: Metr
           fontSize: '0.875rem',
           margin: '0 0 4px 0'
         }}>
-          Atraso médio no trânsito
+          Average traffic delay
         </p>
         <p style={{
           fontSize: '1.5rem',

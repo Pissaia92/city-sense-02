@@ -18,10 +18,10 @@ export const InitialState = () => (
       color: '#475569',
       marginBottom: '8px'
     }}>
-      Carregando cidade inicial
+      Loadind initial city
     </h2>
     <p style={{ color: '#64748b' }}>
-      Buscando dados para São Paulo...
+      Fetching data for São Paulo...
     </p>
     <style>
       {`@keyframes pulse { 

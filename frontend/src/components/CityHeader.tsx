@@ -64,7 +64,7 @@ export const CityHeader = ({ data, dataFormatada, getWeatherIcon, darkMode = fal
             fontSize: '0.875rem',
             margin: '0 0 4px 0'
           }}>
-            Temperatura
+            Temperature
           </p>
           <p style={{
             fontSize: '1.5rem',
@@ -86,7 +86,7 @@ export const CityHeader = ({ data, dataFormatada, getWeatherIcon, darkMode = fal
             fontSize: '0.875rem',
             margin: '0 0 4px 0'
           }}>
-            Umidade
+            Humidity
           </p>
           <p style={{
             fontSize: '1.5rem',
