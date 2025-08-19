@@ -221,12 +221,12 @@ const AppContent = () => {
     if (comparisonCity.trim() && data) { 
       setComparisonLoading(true);
       fetchForecast(comparisonCity); 
-      console.log(`Comparando ${data.city} com ${comparisonCity}`); 
+      console.log(`Comparing ${data.city} with ${comparisonCity}`); 
       setTimeout(() => setComparisonLoading(false), 3000);
     } 
   };
 
-  const formatTrafficDelay = (delay: number) => delay <= 0 ? '0 minutos' : `${Math.round(delay)} minutos`;
+  const formatTrafficDelay = (delay: number) => delay <= 0 ? '0 minutes' : `${Math.round(delay)} minutes`;
 
   const cityData = data ? { 
     longitude: data.longitude, 
@@ -480,7 +480,7 @@ const AppContent = () => {
           {data && forecast && forecast.length > 0 && (
             <div style={{ marginBottom: '32px', backgroundColor: darkMode ? '#1e293b' : 'white', borderRadius: '12px', boxShadow: darkMode ? '0 4px 6px rgba(0, 0, 0, 0.3)' : '0 4px 6px rgba(0, 0, 0, 0.05)', overflow: 'hidden' }}>
               <div style={{ padding: '16px', borderBottom: darkMode ? '1px solid #334155' : '1px solid #e2e8f0' }}>
-                <h2 style={{ fontSize: '1.5rem', fontWeight: '600', color: darkMode ? '#cbd5e1' : '#1e293b' }}>Temperaturas Previstas - {data.city}</h2>
+                <h2 style={{ fontSize: '1.5rem', fontWeight: '600', color: darkMode ? '#cbd5e1' : '#1e293b' }}>Expected Temperatures - {data.city}</h2>
               </div>
               <div style={{ padding: '16px' }}>
                 <ForecastChart data={forecast || []} darkMode={darkMode} />
@@ -491,7 +491,7 @@ const AppContent = () => {
           {comparisonCity && comparisonForecast && comparisonForecast.length > 0 && (
             <div style={{ marginBottom: '32px', backgroundColor: darkMode ? '#1e293b' : 'white', borderRadius: '12px', boxShadow: darkMode ? '0 4px 6px rgba(0, 0, 0, 0.3)' : '0 4px 6px rgba(0, 0, 0, 0.05)', overflow: 'hidden' }}>
               <div style={{ padding: '16px', borderBottom: darkMode ? '1px solid #334155' : '1px solid #e2e8f0' }}>
-                <h2 style={{ fontSize: '1.5rem', fontWeight: '600', color: darkMode ? '#cbd5e1' : '#1e293b' }}>Temperaturas Previstas - {comparisonCity}</h2>
+                <h2 style={{ fontSize: '1.5rem', fontWeight: '600', color: darkMode ? '#cbd5e1' : '#1e293b' }}>Expected Temperatures - {comparisonCity}</h2>
               </div>
               <div style={{ padding: '16px' }}>
                 <ForecastChart data={comparisonForecast || []} darkMode={darkMode} />
@@ -502,19 +502,19 @@ const AppContent = () => {
           {comparisonCity && !comparisonForecast && comparisonForecast !== null && (
             <div style={{ marginBottom: '32px', backgroundColor: darkMode ? '#1e293b' : 'white', borderRadius: '12px', boxShadow: darkMode ? '0 4px 6px rgba(0, 0, 0, 0.3)' : '0 4px 6px rgba(0, 0, 0, 0.05)', overflow: 'hidden' }}>
               <div style={{ padding: '16px', borderBottom: darkMode ? '1px solid #334155' : '1px solid #e2e8f0' }}>
-                <h2 style={{ fontSize: '1.5rem', fontWeight: '600', color: darkMode ? '#cbd5e1' : '#1e293b' }}>Temperaturas Previstas - {comparisonCity}</h2>
+                <h2 style={{ fontSize: '1.5rem', fontWeight: '600', color: darkMode ? '#cbd5e1' : '#1e293b' }}>Expected Temperatures - {comparisonCity}</h2>
               </div>
               <div style={{ padding: '16px', textAlign: 'center' }}>
                 <div style={{ fontSize: '2rem', marginBottom: '10px', color: darkMode ? '#94a3b8' : '#64748b' }}>🌤️</div>
-                <p style={{ color: darkMode ? '#94a3b8' : '#64748b', textAlign: 'center' }}>Previsão do tempo não disponível para {comparisonCity}</p>
+                <p style={{ color: darkMode ? '#94a3b8' : '#64748b', textAlign: 'center' }}>Weather forecast not available for {comparisonCity}</p>
               </div>
             </div>
           )}          
 
           {!data && searchTried && !loading && !error && (
             <div style={{ textAlign: 'center', padding: '40px 20px', backgroundColor: darkMode ? '#1e293b' : 'white', borderRadius: '12px', boxShadow: darkMode ? '0 4px 6px rgba(0, 0, 0, 0.3)' : '0 4px 6px rgba(0, 0, 0, 0.05)', marginTop: '24px' }}>
-              <h2 style={{ fontSize: '1.5rem', color: darkMode ? '#cbd5e1' : '#1e293b', marginBottom: '16px' }}>Nenhuma cidade selecionada</h2>
-              <p style={{ color: darkMode ? '#94a3b8' : '#64748b', fontSize: '1.1rem', maxWidth: '600px', margin: '0 auto' }}>Digite o nome de uma cidade no campo acima para ver sua qualidade de vida urbana</p>
+              <h2 style={{ fontSize: '1.5rem', color: darkMode ? '#cbd5e1' : '#1e293b', marginBottom: '16px' }}>No city selected</h2>
+              <p style={{ color: darkMode ? '#94a3b8' : '#64748b', fontSize: '1.1rem', maxWidth: '600px', margin: '0 auto' }}>Type the name of a city in the field above to see its urban quality of life</p>
             </div>
           )}
           <Footer darkMode={darkMode} />

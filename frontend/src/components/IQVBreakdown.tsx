@@ -13,21 +13,21 @@ export const IQVBreakdown = ({ data, darkMode = false }: IQVBreakdownProps) => {
       color: data.iqv_climate >= 7 ? '#10b981' : data.iqv_climate >= 5 ? '#eab308' : '#ef4444'
     },
     {
-      name: "Umidade",
+      name: "Humidity",
       value: data.humidity,
       unit: "%",
       ideal: "50%",
       color: data.iqv_humidity >= 7 ? '#10b981' : data.iqv_humidity >= 5 ? '#eab308' : '#ef4444'
     },
     {
-      name: "Trânsito",
+      name: "Traffic",
       value: data.avg_traffic_delay_min,
       unit: "min",
       ideal: "0 min",
       color: data.iqv_traffic >= 7 ? '#10b981' : data.iqv_traffic >= 5 ? '#eab308' : '#ef4444'
     },
     {
-      name: "Tendência",
+      name: "Trend",
       value: data.iqv_trend.toFixed(1),
       unit: "",
       ideal: "5-10",

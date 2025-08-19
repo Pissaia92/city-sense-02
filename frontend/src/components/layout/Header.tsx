@@ -34,7 +34,7 @@ export const Header = ({ data, city, darkMode = false, toggleDarkMode }: HeaderP
           marginTop: '4px',
           fontSize: '1.1rem'
         }}>
-          Índice de Qualidade de Vida Urbana
+          Quality of Life Index
         </p>
       </div>
       
@@ -43,7 +43,7 @@ export const Header = ({ data, city, darkMode = false, toggleDarkMode }: HeaderP
           color: darkMode ? '#94a3b8' : '#64748b',
           fontSize: '0.9rem'
         }}>
-          Modo de cores
+          Color theme
         </span>
         <button
           onClick={toggleDarkMode}
