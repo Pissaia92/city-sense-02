@@ -1,38 +1,47 @@
-# City Sense - Urban Quality of Life Index
+City Sense 🌆
 
-Description: Web application that analyzes and compares the quality of life in different cities, providing detailed metrics on climate, humidity, traffic, and weather trends.
-It is an open-source project that allows for the implementation of various features depending on the intended use. Accessible at: https://city-sense.vercel.app/
+A web application that analyzes and compares the quality of life in different cities, using metrics such as climate, traffic, humidity, and weather trends. The project is open source and can be expanded to accommodate different use cases.
 
-Technologies Used:
+📌 Objective
 
-## Frontend:
-React + TypeScript - Core Framework
+To provide an interactive quality of life index, enabling comparisons between cities and exploring predictions based on machine learning.
 
-Vite - Build tool and development for ultra-fast loading
+🛠️ Technologies
 
-Recharts - Data Visualization
+Frontend
 
-Tailwind CSS - Styling
+React + TypeScript
 
-Luxon - Date Manipulation
+Vite (fast build)
 
-## Backend:
-REST API: FastAPI for scalable endpoints with JWT authentication (optional)
+Recharts (data visualization)
 
-Machine Learning: Scikit-learn models for quality of life prediction
+Tailwind CSS
 
-Data Validation: Pydantic for type-safe schemas
+Luxon (date manipulation)
 
-Deployment CI/CD: Automated pipelines in Render
+Backend
 
-### Features:
+FastAPI (scalable endpoints with optional JWT)
 
-Detailed QoL analysis by city
+Scikit-learn (QoL prediction models)
 
-City Comparison
+Pydantic (data validation)
 
-QoL forecasting with machine learning
+Render (CI/CD and automated deployment)
 
-Interactive comparison charts
+✨ Features
 
-Light/Dark Mode
+Detailed quality of life analysis by city
+
+Side-by-side comparison between cities
+
+Machine learning-based predictions
+
+Interactive and responsive charts
+
+Light/Dark Mode support
+
+🔗 Deployment
+
+Available at: city-sense.vercel.app
