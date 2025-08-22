@@ -44,4 +44,4 @@ Light/Dark Mode support
 
 🔗 Deployment
 
-Available at: city-sense.vercel.app
+Available at: city-sense.vercel.app (sometimes require a few seconds to load)
