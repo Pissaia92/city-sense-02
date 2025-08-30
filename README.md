@@ -1,4 +1,8 @@
-City Sense 🌆
+# City Sense 🌆
+
+Available at: https://city-sense.vercel.app/  
+*(can require some time to load)*
+
 
 A web application that analyzes and compares the quality of life in different cities, using metrics such as climate, traffic, humidity, and weather trends. The project is open source and can be expanded to accommodate different use cases.
 
@@ -6,42 +10,28 @@ A web application that analyzes and compares the quality of life in different ci
 
 To provide an interactive quality of life index, enabling comparisons between cities and exploring predictions based on machine learning.
 
-🛠️ Technologies
+| **Frontend** | **Backend** |
+|--------------|-------------|
+| React + TypeScript | FastAPI |
+| Vite (fast build) | Scikit-learn |
+| Recharts (data visualization) | Pydantic |
+| Tailwind CSS | JWT (optional) |
+| Luxon (date manipulation) | Render (CI/CD) |
 
-Frontend
+---
 
-React + TypeScript
+## ✨ Features
 
-Vite (fast build)
+- 📊 Detailed quality of life analysis by city  
+- 🆚 Side-by-side city comparisons  
+- 🤖 ML-based predictions  
+- 📈 Interactive and responsive charts  
+- 🌗 Light/Dark Mode support
 
-Recharts (data visualization)
+## 🧪 Status & License
 
-Tailwind CSS
+![Build](https://img.shields.io/badge/build-passing-brightgreen)
+![License](https://img.shields.io/badge/license-MIT-blue)
+![Tech](https://img.shields.io/badge/stack-Full--Stack-purple)
 
-Luxon (date manipulation)
 
-Backend
-
-FastAPI (scalable endpoints with optional JWT)
-
-Scikit-learn (QoL prediction models)
-
-Pydantic (data validation)
-
-Render (CI/CD and automated deployment)
-
-✨ Features
-
-Detailed quality of life analysis by city
-
-Side-by-side comparison between cities
-
-Machine learning-based predictions
-
-Interactive and responsive charts
-
-Light/Dark Mode support
-
-🔗 Deployment
-
-Available at: city-sense.vercel.app (sometimes require a few seconds to load)
