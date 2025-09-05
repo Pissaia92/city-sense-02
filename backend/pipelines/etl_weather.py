@@ -6,7 +6,7 @@ import os
 import pathlib
 
 
-API_KEY = "060c37193bfdd9af8c1fb0b35f11922d" 
+API_KEY = "639a55afc4ce8c41a27ae30d387af052" 
 
 # Diretório de dados relativo ao script
 CURRENT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) # D:\city-sense\backend

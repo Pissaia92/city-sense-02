@@ -1,100 +1,47 @@
-import joblib
-import pandas as pd
-import datetime
-from sklearn.ensemble import RandomForestRegressor
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import mean_squared_error
+# backend/ml/iqv_predictor.py
 import os
 import logging
+import numpy as np
+import joblib
+from typing import Dict, Any
 
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 class IQVPredictor:
-    def __init__(self, model_path=None):
-        self.model = None
+    def __init__(self, model_path: str = "./models/qv_model.pkl"):
         self.model_path = model_path
+        self.model = None
         self.is_trained = False
-        
-        if model_path and os.path.exists(model_path):
+        self.load_model()
+
+    def load_model(self):
+        if os.path.exists(self.model_path):
             try:
-                self.model = joblib.load(model_path)
+                self.model = joblib.load(self.model_path)
                 self.is_trained = True
-                logger.info(f"Modelo carregado com sucesso de {model_path}")
+                logger.info(f"✅ Modelo carregado com sucesso de {self.model_path}")
             except Exception as e:
-                logger.error(f"Erro ao carregar modelo de {model_path}: {str(e)}")
-    
-    def train(self, historical_data):
-        """Treina o modelo com dados históricos"""
-        try:
-            df = pd.DataFrame(historical_data)
-            
-            # Cria features relevantes
-            df['temp_humidity_interaction'] = df['temperature'] * df['humidity']
-            df['is_weekend'] = df['day_of_week'].apply(lambda x: 1 if x >= 5 else 0)
-            df['season'] = df['month'].apply(self._get_season)
-            
-            # Prepara dados para treinamento
-            X = df[['temperature', 'humidity', 'traffic_delay', 
-                   'temp_humidity_interaction', 'is_weekend', 'season']]
-            y = df['iqv_overall']
-            
-            X_train, X_test, y_train, y_test = train_test_split(
-                X, y, test_size=0.2, random_state=42
-            )
-            
-            self.model = RandomForestRegressor(n_estimators=100, random_state=42)
-            self.model.fit(X_train, y_train)
-            y_pred = self.model.predict(X_test)
-            rmse = mean_squared_error(y_test, y_pred, squared=False)
-            
-            logger.info(f"Modelo treinado com RMSE: {rmse:.2f}")
-            self.is_trained = True
-            
-            # Salva o modelo treinado
-            if self.model_path:
-                os.makedirs(os.path.dirname(self.model_path), exist_ok=True)
-                joblib.dump(self.model, self.model_path)
-                logger.info(f"Modelo salvo em {self.model_path}")
-            
-            return rmse
-        except Exception as e:
-            logger.error(f"Erro no treinamento do modelo: {str(e)}")
-            raise
-    
-    def predict(self, current_data):
-        """Faz previsões para novos dados"""
-        if not self.is_trained:
-            logger.warning("Modelo não treinado. Usando valor padrão.")
-            return 7.5  # Valor padrão se o modelo não estiver treinado
-        
-        try:
-            # Cria features para previsão
-            current_date = datetime.datetime.now()
-            features = pd.DataFrame([{
-                'temperature': current_data['temperature'],
-                'humidity': current_data['humidity'],
-                'traffic_delay': current_data['traffic_delay'],
-                'temp_humidity_interaction': current_data['temperature'] * current_data['humidity'],
-                'is_weekend': 1 if current_date.weekday() >= 5 else 0,
-                'season': self._get_season(current_date.month)
-            }])
-            
-            return float(self.model.predict(features)[0])
-        except Exception as e:
-            logger.error(f"Erro na previsão: {str(e)}")
-            return 7.5  # Valor padrão em caso de erro
-    
-    def _get_season(self, month):
-        """Determina a estação do ano com base no mês"""
-        if month in [12, 1, 2]:
-            return 0  # Verão
-        elif month in [3, 4, 5]:
-            return 1  # Outono
-        elif month in [6, 7, 8]:
-            return 2  # Inverno
+                logger.error(f"❌ Erro ao carregar o modelo de {self.model_path}: {e}")
+                self.model = None
+                self.is_trained = False
         else:
-            return 3  # Primavera
-    
-    def is_model_available(self):
-        """Verifica se o modelo está disponível para uso"""
-        return self.is_trained
+            logger.warning(f"⚠️ Arquivo de modelo não encontrado em {self.model_path}")
+            self.model = None
+            self.is_trained = False
+
+    def predict(self, features: Dict[str, Any]) -> float:
+        if not self.is_trained or self.model is None:
+            logger.warning("⚠️ Modelo não disponível. Retornando valor padrão.")
+            return 7.5
+
+        try:
+            feature_vector = list(features.values())
+            model_input = np.array(feature_vector).reshape(1, -1)
+            prediction = self.model.predict(model_input)
+            predicted_iqv = float(prediction[0])
+            logger.info(f"🔮 Previsão de IQV: {predicted_iqv:.2f}")
+            return predicted_iqv
+        except Exception as e:
+            logger.error(f"❌ Erro durante a previsão: {e}")
+            return 7.5
