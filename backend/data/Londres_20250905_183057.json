@@ -1,0 +1,13 @@
+{
+  "city": "Londres",
+  "temperature": 16.64,
+  "humidity": 76.0,
+  "traffic_delay": 11.85,
+  "aqi": 30.0,
+  "safety_index": 7.6,
+  "temp_normalized": 0.22133333333333335,
+  "humidity_score": 0.0,
+  "traffic_score": 6.050000000000001,
+  "predicted_iqv": 7.5,
+  "timestamp": "2025-09-05T18:30:57.772531"
+}

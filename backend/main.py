@@ -1,11 +1,11 @@
 # backend/main.py
 import os
 from dotenv import load_dotenv
-load_dotenv() # Carrega variáveis de ambiente do .env
-
+load_dotenv() 
 from fastapi import FastAPI, HTTPException
 from typing import Dict, Any
 from datetime import datetime
+from pipelines import DataProcessor
 import logging
 import unicodedata
 import asyncio
@@ -17,9 +17,9 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # --- Importações do Projeto ---
-# Corrigido para importar DataProcessor
 try:
-    from pipelines.data_processing import DataProcessor
+    processor = DataProcessor(city_normalized)
+    processed_data = processor.process()
     PIPELINE_AVAILABLE = True
 except ImportError as e:
     logger.error(f"❌ Erro ao importar DataProcessor: {e}")
