@@ -1,4 +1,3 @@
-// src/context/ThemeContext.tsx
 import { createContext, useState, useEffect, type ReactNode } from 'react';
 
 interface ThemeContextType {
@@ -20,7 +19,12 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     localStorage.setItem('city-sense-dark-mode', JSON.stringify(darkMode));
-    document.documentElement.classList.toggle('dark', darkMode);
+    if (darkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+
   }, [darkMode]);
 
   const toggleDarkMode = () => setDarkMode(!darkMode);

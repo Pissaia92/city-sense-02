@@ -47,16 +47,16 @@ def fetch_traffic_data():
     
     return traffic_data
 
-def save_traffic_data(data):
-    """Salva dados de trânsito em Parquet."""
-    df = pd.DataFrame(data)
-    df.to_parquet(INPUT_FILE, index=False)
+# def save_traffic_data(data):
+#     """Salva dados de trânsito em Parquet."""
+#     df = pd.DataFrame(data)
+#     df.to_parquet(INPUT_FILE, index=False)
 
 def run_traffic_etl():
     """Pipeline completo de ETL para trânsito."""
     try:
         data = fetch_traffic_data()
-        save_traffic_data(data)
+        # save_traffic_data(data)
         return {"status": "success", "routes_processed": len(data)}
     except Exception as e:
         return {"status": "error", "message": str(e)}

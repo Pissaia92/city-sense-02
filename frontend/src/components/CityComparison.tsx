@@ -1,6 +1,24 @@
+// frontend/src/components/CityComparison.tsx
 import React, { useEffect, useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 
+// --- Definição de Tipos ---
+// Tipo para os dados brutos da API local
+interface LocalAPIResponse {
+  city: string;
+  temperature: number;
+  humidity: number;
+  traffic_delay: number;
+  aqi: number;
+  safety_index: number;
+  temp_normalized: number;
+  humidity_score: number;
+  traffic_score: number;
+  predicted_iqv: number;
+  timestamp: string;
+}
+
+// Tipo para os dados formatados para o gráfico (esperado pelo componente)
 interface ComparisonData {
   city: string;
   iqv_overall: number;
@@ -15,81 +33,94 @@ interface CityComparisonProps {
   shouldFetch?: boolean;
 }
 
+// --- Componente Principal ---
 export const CityComparison = ({ 
   cities, 
-  darkMode, 
+  darkMode = false, // Valor padrão adicionado
   shouldFetch = false
 }: CityComparisonProps) => {
   const [data, setData] = useState<ComparisonData[]>([]);
   const [loading, setLoading] = useState(false);
-  const [comparisonCache, setComparisonCache] = useState<Record<string, any>>({});
+  const [comparisonCache, setComparisonCache] = useState<Record<string, LocalAPIResponse>>({});
   const [error, setError] = useState<string | null>(null);
   const [hasFetched, setHasFetched] = useState(false);
 
-  useEffect(() => {
-    const fetchDataWithCache = async (cityName: string) => {
-      if (comparisonCache[cityName]) {
-        return comparisonCache[cityName];
-      }
-      
-      try {
-        const response = await fetch(`https://city-sense.onrender.com/api/iqv?city=${encodeURIComponent(cityName)}`);
-        if (!response.ok) {
-          if (response.status === 404) {
-            setError(`City "${cityName}" not found`);
-            return null;
-          }
-          throw new Error(`Erro ${response.status}`);
+  // --- Função para buscar dados da API LOCAL com cache ---
+  const fetchDataWithCache = async (cityName: string): Promise<LocalAPIResponse | null> => {
+    if (comparisonCache[cityName]) {
+      return comparisonCache[cityName];
+    }
+    try {
+      // --- ATUALIZADO: URL da API LOCAL ---
+      const response = await fetch(`http://localhost:8000/api/predict/iqv?city=${encodeURIComponent(cityName)}`);
+      if (!response.ok) {
+        if (response.status === 404) {
+          setError(`City "${cityName}" not found`);
+          return null;
         }
-        const data = await response.json();
-        console.log('Raw API data:', data);
-        setComparisonCache(prev => ({ ...prev, [cityName]: data }));
-        return data;
-      } catch (error) {
-        console.error('Error fetching data:', error);
-        setError('Error loading comparison data');
-        return null;
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
-    };
+      const data: LocalAPIResponse = await response.json();
+      console.log(`Raw API data for ${cityName}:`, data);
+      setComparisonCache(prev => ({ ...prev, [cityName]: data }));
+      return data;
+    } catch (error: any) {
+      console.error(`Error fetching data for ${cityName}:`, error);
+      setError(`Error loading data for ${cityName}: ${error.message}`);
+      return null;
+    }
+  };
 
+  // --- Efeito para buscar dados das cidades ---
+  useEffect(() => {
     const fetchData = async () => {
-      if (!shouldFetch && !hasFetched) return;
-      
+      // Só busca se shouldFetch for true ou se ainda não buscou e tem cidades
+      if ((!shouldFetch && hasFetched) || cities.length < 2) {
+        return;
+      }
+
       try {
         setLoading(true);
         setError(null);
         const promises = cities.map(city => fetchDataWithCache(city));
         const results = await Promise.all(promises);
         
-        const validResults = results.filter(result => 
-        result && 
-        typeof result.iqv_overall !== 'undefined' &&
-        typeof result.city !== 'undefined'
-      );
+        // Filtra resultados válidos
+        const validResults = results.filter((result): result is LocalAPIResponse => result !== null);
 
-        // Formatação dos dados
-        const formattedData = validResults.map(cityData => ({
-          city: cityData.city,
-          iqv_overall: Number(cityData.iqv_overall),
-          iqv_climate: Number(cityData.iqv_climate),
-          iqv_humidity: Number(cityData.iqv_humidity),
-          iqv_traffic: Number(cityData.iqv_traffic)
-        }));
+        // --- ATUALIZADO: Formatação dos dados da API LOCAL para o formato do gráfico ---
+        const formattedData: ComparisonData[] = validResults.map(cityData => {
+             // Exemplo de cálculo para iqv_climate (ajuste conforme a lógica original)
+             const climateQualityValue = ((cityData.temp_normalized * 0.6) + ((cityData.humidity_score / 6) * 0.4)) * 10; // Escala 0-10
+
+             return {
+                city: cityData.city,
+                // iqv_overall é o predicted_iqv da API local
+                iqv_overall: Number(cityData.predicted_iqv.toFixed(2)),
+                // iqv_climate calculado a partir de temp_normalized e humidity_score
+                iqv_climate: Number(climateQualityValue.toFixed(2)),
+                // iqv_humidity pode ser humidity_score normalizado (ex: humidity_score / 6 * 10)
+                iqv_humidity: Number(((cityData.humidity_score / 6) * 10).toFixed(2)),
+                // iqv_traffic é o traffic_score da API local (assumindo escala 0-10)
+                iqv_traffic: Number(cityData.traffic_score),
+             };
+        });
 
         setData(formattedData);
-        console.log('Formatted data:', formattedData); // For debugging
+        console.log('Formatted comparison data:', formattedData);
         setHasFetched(true);
-      } catch (error) {
-        console.error('Error fetching data:', error);
-        setError('Error processing comparison');
+      } catch (error: any) {
+        console.error('Error processing comparison data:', error);
+        setError('Error processing comparison data: ' + (error.message || 'Unknown error'));
       } finally {
         setLoading(false);
       }
     };
-    
-    if (cities.length > 1) fetchData();
-  }, [cities, shouldFetch]);
 
+    fetchData();
+  }, [cities, shouldFetch, hasFetched, comparisonCache]); // Adiciona dependências
+
+  // --- Renderização Condicional ---
   if (cities.length < 2 && !hasFetched) return null;
   
   if (loading) {
@@ -128,6 +159,7 @@ export const CityComparison = ({
     );
   }
 
+  // --- Cores para o gráfico ---
   const barColors = {
     iqv_overall: darkMode ? '#3b82f6' : '#2563eb',
     iqv_climate: darkMode ? '#10b981' : '#059669',
@@ -135,6 +167,7 @@ export const CityComparison = ({
     iqv_traffic: darkMode ? '#f97316' : '#ea580c'
   };
 
+  // --- Renderização Principal ---
   return (
     <div style={{ 
       backgroundColor: darkMode ? '#1e293b' : 'white', 
@@ -152,7 +185,6 @@ export const CityComparison = ({
       }}>
         Detailed Comparison
       </h2>
-      
       <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
         <div>
           <h3 style={{ 

@@ -1,0 +1,71 @@
+/* --- Reset CSS Básico --- */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+* {
+  margin: 0;
+  padding: 0;
+}
+body {
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  font-family: 'Inter', sans-serif; /* Ou a fonte que você estiver usando */
+}
+img, picture, video, canvas, svg {
+  display: block;
+  max-width: 100%;
+}
+input, button, textarea, select {
+  font: inherit;
+}
+p, h1, h2, h3, h4, h5, h6 {
+  overflow-wrap: break-word;
+}
+#root, #__next {
+  isolation: isolate;
+}
+
+/* --- Variáveis CSS para Temas --- */
+:root {
+  /* Modo Claro - Cores Padrão */
+  --background: #ffffff;
+  --background-secondary: #f1f5f9;
+  --foreground: #0f172a;
+  --foreground-secondary: #64748b;
+  --primary: #3b82f6;
+  --primary-hover: #2563eb;
+  --border: #e2e8f0;
+  --shadow: rgba(0, 0, 0, 0.05);
+  --success: #10b981;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+}
+
+:root.dark {
+  /* Modo Escuro - Cores Invertidas/Adaptadas */
+  --background: #0f172a;
+  --background-secondary: #1e293b;
+  --foreground: #f1f5f9;
+  --foreground-secondary: #94a3b8;
+  --primary: #60a5fa;
+  --primary-hover: #93c5fd;
+  --border: #334155;
+  --shadow: rgba(0, 0, 0, 0.3);
+  --success: #34d399;
+  --warning: #fbbf24;
+  --danger: #f87171;
+}
+
+/* --- Estilos Globais Baseados nas Variáveis --- */
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  transition: background-color 0.3s ease, color 0.3s ease; /* Transição suave */
+}
+
+/* Opcional: Adicionar uma classe 'dark' ao <html> também funciona */
+/* Isso é útil se você quiser usar seletores mais específicos */
+.dark {
+  background-color: var(--background);
+  color: var(--foreground);
+}

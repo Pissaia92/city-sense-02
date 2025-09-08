@@ -41,17 +41,17 @@ def process_weather_data(raw_data):
 DATA_DIR = pathlib.Path(__file__).parent.parent / "data"
 
 @task
-def save_to_parquet(data, filepath=DATA_DIR / "weather_data.parquet"):
-    os.makedirs(DATA_DIR, exist_ok=True)
-    df = pd.DataFrame([data])
-    df.to_parquet(filepath, index=False)
-    print(f"Dados salvos em {filepath}") 
+# def save_to_parquet(data, filepath=DATA_DIR / "weather_data.parquet"):
+#     os.makedirs(DATA_DIR, exist_ok=True)
+#     df = pd.DataFrame([data])
+#     df.to_parquet(filepath, index=False)
+#     print(f"Dados salvos em {filepath}") 
 
 @flow(name="ETL - Clima São Paulo")
 def etl_weather_flow():
     raw = fetch_weather_data()
     processed = process_weather_data(raw)
-    save_to_parquet(processed)
+    # save_to_parquet(processed)
     return processed
 
 if __name__ == "__main__":
