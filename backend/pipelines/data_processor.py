@@ -1,11 +1,12 @@
+# backend/pipelines/data_processor.py
 import polars as pl
 import numpy as np
 from datetime import datetime
 import logging
 from pathlib import Path
+from .data_sources import get_weather, get_traffic, get_air_quality, get_safety
+from .utils import utils
 from ml.iqv_predictor import IQVPredictor
-from .data_sources import get_weather_data, get_traffic_data, get_air_quality_data, get_safety_data
-from .utils.helpers import save_to_database
 
 logger = logging.getLogger(__name__)
 
@@ -14,6 +15,7 @@ class DataProcessor:
         self.city = city
         self.raw_data = {}
         self.processed_data = {}
+        # Caminho do modelo - ajustado para usar Pathlib
         model_path = Path(__file__).parent.parent / "ml" / "models" / "qv_model.pkl"
         self.predictor = IQVPredictor(model_path=str(model_path))
 
@@ -21,10 +23,10 @@ class DataProcessor:
         """Extrai dados de múltiplas fontes."""
         logger.info(f"🔍 Extraindo dados para {self.city}")
         self.raw_data = {
-            'weather': get_weather_data(self.city),
-            'traffic': get_traffic_data(self.city),
-            'air_quality': get_air_quality_data(self.city),
-            'safety': get_safety_data(self.city)
+            'weather': get_weather.get_weather_data(self.city),
+            'traffic': get_traffic.get_traffic_data(self.city),
+            'air_quality': get_air_quality.get_air_quality_data(self.city),
+            'safety': get_safety.get_safety_data(self.city)
         }
         return self
 
@@ -34,6 +36,7 @@ class DataProcessor:
             if not self.raw_data:
                 raise ValueError("Nenhum dado bruto disponível para transformação.")
                 
+            # Cria DataFrame com os dados brutos
             df = pl.DataFrame([{
                 'temperature': self.raw_data['weather']['temperature'],
                 'humidity': self.raw_data['weather']['humidity'],
@@ -42,6 +45,7 @@ class DataProcessor:
                 'safety_index': self.raw_data['safety']['safety_index']
             }])
             
+            # Feature Engineering com Polars
             df = df.with_columns([
                 ((pl.col("temperature") - 10) / 30).alias("temp_normalized")
             ])
@@ -57,12 +61,15 @@ class DataProcessor:
                 (10 - pl.col("traffic_delay") / 3).clip(0, 10).alias("traffic_score")
             ])
             
+            # Verifica se o DataFrame tem dados
             if df.height == 0:
                 raise ValueError("DataFrame vazio durante a transformação.")
             
+            # Acessa os valores da primeira linha corretamente
             first_row = df.row(0)
             first_row_dict = dict(zip(df.columns, first_row))
             
+            # Prepara dados para o modelo
             model_data = {
                 'temperature': float(first_row_dict.get('temperature', 0)),
                 'humidity': float(first_row_dict.get('humidity', 0)),
@@ -71,9 +78,11 @@ class DataProcessor:
                 'month': datetime.now().month,
             }
 
+            # Faz previsão com o modelo
             predicted_iqv = self.predictor.predict(model_data)
             logger.info(f"🔮 IQV previsto para {self.city}: {predicted_iqv:.2f}")
 
+            # Cria dados processados
             self.processed_data = {
                 'city': self.city,
                 'temperature': float(first_row_dict.get('temperature', 0)),
@@ -99,7 +108,8 @@ class DataProcessor:
         if not self.processed_data:
             logger.warning("⚠️ Nenhum dado processado para salvar.")
             return None
-        save_to_database(self.city, self.processed_data)
+        # Usa a função utilitária corrigida
+        utils.save_to_database(self.city, self.processed_data)
         return self.processed_data
         
     def process(self):

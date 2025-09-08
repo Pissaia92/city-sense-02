@@ -55,7 +55,7 @@ def train_quality_of_life_model(data_path: str, model_path: str = str(DEFAULT_MO
         df = df.with_columns([
             (pl.col('temperature') * pl.col('humidity')).alias('temp_humidity_interaction'),
             pl.when(pl.col('day_of_week') >= 5).then(1).otherwise(0).alias('is_weekend'),
-            pl.col('month').apply(_get_season).alias('season') # Se precisar de mais performance, use .map_elements
+            pl.col('month').map_elements(_get_season, return_dtype=pl.Int64).alias('season')
         ])
         
         # Selecionar features e target

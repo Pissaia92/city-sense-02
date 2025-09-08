@@ -35,8 +35,7 @@ def load_all_data(data_dir: Path) -> pl.DataFrame:
             
             # Converte o dict para DataFrame Polars e adiciona à lista
             # NOTA: Se o JSON tiver uma estrutura aninhada complexa, isso pode precisar de ajuste.
-            # Para uma lista de registros, use pl.from_dicts([data]). Para um único registro, pl.DataFrame([data])
-            df_temp = pl.DataFrame([data]) # [data] porque pl.DataFrame espera uma lista de dicts
+            df_temp = pl.DataFrame([data])
             dataframes.append(df_temp)
             
         except Exception as e:
@@ -90,12 +89,3 @@ def load_city_data(city_name: str, data_dir: Path) -> pl.DataFrame:
     else:
         logger.warning(f"Nenhum dado válido encontrado para '{city_name}'.")
         return pl.DataFrame()
-
-# Exemplo de uso (opcional)
-# if __name__ == "__main__":
-#     data_dir = Path(__file__).parent / "data"
-#     df = load_all_data(data_dir)
-#     if not df.is_empty():
-#         output_path = Path(__file__).parent.parent / "data" / "consolidated_data.parquet"
-#         df.write_parquet(output_path)
-#         print(f"✅ Dados consolidados salvos em {output_path}")
