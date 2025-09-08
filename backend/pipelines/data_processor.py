@@ -13,6 +13,7 @@ logger = logging.getLogger(__name__)
 class DataProcessor:
     def __init__(self, city: str):
         self.city = city
+        self.city = utils.normalize_city_name(city)
         self.raw_data = {}
         self.processed_data = {}
         # Caminho do modelo - ajustado para usar Pathlib
@@ -29,6 +30,16 @@ class DataProcessor:
             'safety': get_safety.get_safety_data(self.city)
         }
         return self
+    
+    def _get_season(self, month: int) -> int:
+        if month in [12, 1, 2]:
+            return 1  # Verão
+        elif month in [3, 4, 5]:
+            return 2  # Outono
+        elif month in [6, 7, 8]:
+            return 3  # Inverno
+        else:
+            return 4  # Primavera
 
     def transform(self):
         """Processa os dados brutos e faz a previsão de IQV."""
@@ -71,11 +82,13 @@ class DataProcessor:
             
             # Prepara dados para o modelo
             model_data = {
-                'temperature': float(first_row_dict.get('temperature', 0)),
-                'humidity': float(first_row_dict.get('humidity', 0)),
-                'traffic_delay': float(first_row_dict.get('traffic_delay', 0)),
-                'day_of_week': datetime.now().weekday(),
-                'month': datetime.now().month,
+            'temperature': float(first_row_dict.get('temperature', 0)),
+            'humidity': float(first_row_dict.get('humidity', 0)),
+            'traffic_delay': float(first_row_dict.get('traffic_delay', 0)),
+            # --- Features derivadas ---
+            'temp_humidity_interaction': float(first_row_dict.get('temperature', 0)) * float(first_row_dict.get('humidity', 0)),
+            'is_weekend': 1 if datetime.now().weekday() >= 5 else 0,
+            'season': self._get_season(datetime.now().month)
             }
 
             # Faz previsão com o modelo
@@ -108,7 +121,6 @@ class DataProcessor:
         if not self.processed_data:
             logger.warning("⚠️ Nenhum dado processado para salvar.")
             return None
-        # Usa a função utilitária corrigida
         utils.save_to_database(self.city, self.processed_data)
         return self.processed_data
         

@@ -1,13 +1,13 @@
+import logging
 import os
 import json
 from datetime import datetime
 from pathlib import Path
-import logging
 import unicodedata
 
 logger = logging.getLogger(__name__)
 
-def save_to_database(city: str, data, dict):
+def save_to_database(city: str, data: dict):
     """Salva dados no banco de dados ou arquivo."""
     try:
         data_dir = Path(__file__).parent.parent.parent / "data"
