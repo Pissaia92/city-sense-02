@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext, useRef } from 'react';
-import { fetchUsers } from './api/api';
+import { fetchIQVData } from './api/api';
 import type { ForecastPoint } from './components/Types/types';
 import ForecastChart from './components/ForecastChart'; 
 import { DateTime } from 'luxon';

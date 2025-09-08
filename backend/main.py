@@ -3,6 +3,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from typing import Dict, Any
 from datetime import datetime
 import logging
@@ -53,6 +54,13 @@ app = FastAPI(
         {"name": "Previsões", "description": "Endpoints para previsões de qualidade de vida"},
         {"name": "Sistema", "description": "Endpoints de verificação do sistema"},
     ]
+)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # --- Endpoints da API ---

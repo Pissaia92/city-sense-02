@@ -16,17 +16,14 @@
     "isolatedModules": true,
     "noUncheckedSideEffectImports": true,
     "moduleDetection": "force",
-    "types": [],
+    "types": ["vite/client"],
     "strict": true,
     "baseUrl": "./src",
     "lib": ["ES2020", "DOM", "DOM.Iterable"],
     "outDir": "./dist",
+    "ignoreDeprecations": "6.0"
         
   },
-  "include": ["src", "src/types/css.d.ts", "src/vite.config.ts"],
-  "resolveJsonModule": true
-  
+  "include": ["src", "src/types/css.d.ts", "src/vite.config.ts", "src/vite-env.d.ts"],
+  "resolveJsonModule": true 
 }
-
-
-
