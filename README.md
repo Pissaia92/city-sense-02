@@ -1,7 +1,7 @@
 # City Sense 🌆
 
 Available at: https://city-sense.vercel.app/  
-*(can require some time to load)*
+*(Back hosted on Render, can require some time/reloads to work)*
 
 
 A web application that analyzes and compares the quality of life in different cities, using metrics such as climate, traffic, humidity, and weather trends. The project is open source and can be expanded to accommodate different use cases.
