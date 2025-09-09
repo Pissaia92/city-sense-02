@@ -1,57 +1,57 @@
-// Verifica se a variável de ambiente está definida, senão usa um valor padrão para desenvolvimento
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+// Check if environment variable is defined, otherwise use default value for development
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8001';
 
 /**
- * Busca a previsão de IQV para uma cidade específica.
- * @param {string} city - Nome da cidade.
- * @returns {Promise<Object>} Dados da previsão de IQV.
+ * Fetches IQV forecast for a specific city.
+ * @param {string} city - City name.
+ * @returns {Promise<Object>} IQV forecast data.
  */
 export const fetchIQVData = async (city) => {
-  // Codifica o nome da cidade para URL
+  // Encode city name for URL
   const encodedCity = encodeURIComponent(city);
-  const url = `${API_URL}/api/predict/iqv?city=${encodedCity}`;
+  const url = `${API_BASE_URL}/api/predict/iqv?city=${encodedCity}`;
   
   try {
     const response = await fetch(url);
     
-    // Verifica se a resposta é OK (status 200-299)
+    // Check if response is OK (status 200-299)
     if (!response.ok) {
-      // Tenta ler o corpo da resposta para obter uma mensagem de erro mais detalhada
-      let errorMessage = `Erro HTTP: ${response.status} - ${response.statusText}`;
+      // Try to read response body for more detailed error message
+      let errorMessage = `HTTP Error: ${response.status} - ${response.statusText}`;
       try {
         const errorData = await response.json();
         if (errorData.detail) {
           errorMessage = errorData.detail;
         }
       } catch (e) {
-        // Se não conseguir parsear o JSON, usa o status text
-        console.warn("Não foi possível parsear o corpo do erro:", e);
+        // If unable to parse JSON, use status text
+        console.warn("Could not parse error body:", e);
       }
       throw new Error(errorMessage);
     }
 
-    // Tenta parsear a resposta como JSON
+    // Try to parse response as JSON
     const data = await response.json();
     return data;
     
   } catch (error) {
-    // Trata erros de rede ou outros erros inesperados
+    // Handle network errors or other unexpected errors
     if (error instanceof TypeError && error.message.includes('fetch')) {
-      throw new Error('Falha na conexão com o servidor. Verifique se o backend está rodando.');
+      throw new Error('Failed to connect to server. Please check if backend is running.');
     }
-    // Re-lança outros erros
+    // Re-throw other errors
     throw error;
   }
 };
 
 /**
- * Verifica a saúde da API.
- * @returns {Promise<Object>} Status da API.
+ * Checks API health.
+ * @returns {Promise<Object>} API status.
  */
 export const fetchHealthCheck = async () => {
-  const response = await fetch(`${API_URL}/api/health`);
+  const response = await fetch(`${API_BASE_URL}/api/health`);
   if (!response.ok) {
-    throw new Error(`Erro ao verificar saúde da API: ${response.status}`);
+    throw new Error(`Error checking API health: ${response.status}`);
   }
   return await response.json();
 };
