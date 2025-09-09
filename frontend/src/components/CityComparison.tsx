@@ -1,4 +1,3 @@
-// frontend/src/components/CityComparison.tsx
 import React, { useEffect, useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 
@@ -17,7 +16,6 @@ interface LocalAPIResponse {
   predicted_iqv: number;
   timestamp: string;
 }
-
 // Tipo para os dados formatados para o gráfico (esperado pelo componente)
 interface ComparisonData {
   city: string;
@@ -26,14 +24,11 @@ interface ComparisonData {
   iqv_humidity: number;
   iqv_traffic: number;
 }
-
 interface CityComparisonProps {
   cities: string[];
   darkMode?: boolean;
   shouldFetch?: boolean;
 }
-
-// --- Componente Principal ---
 export const CityComparison = ({ 
   cities, 
   darkMode = false, // Valor padrão adicionado
@@ -51,7 +46,7 @@ export const CityComparison = ({
       return comparisonCache[cityName];
     }
     try {
-      // --- ATUALIZADO: URL da API LOCAL ---
+      // --- URL da API LOCAL ---
       const response = await fetch(`http://localhost:8000/api/predict/iqv?city=${encodeURIComponent(cityName)}`);
       if (!response.ok) {
         if (response.status === 404) {
@@ -70,7 +65,6 @@ export const CityComparison = ({
       return null;
     }
   };
-
   // --- Efeito para buscar dados das cidades ---
   useEffect(() => {
     const fetchData = async () => {
@@ -88,9 +82,9 @@ export const CityComparison = ({
         // Filtra resultados válidos
         const validResults = results.filter((result): result is LocalAPIResponse => result !== null);
 
-        // --- ATUALIZADO: Formatação dos dados da API LOCAL para o formato do gráfico ---
+        // --- Formatação dos dados da API LOCAL para o formato do gráfico ---
         const formattedData: ComparisonData[] = validResults.map(cityData => {
-             // Exemplo de cálculo para iqv_climate (ajuste conforme a lógica original)
+             // Exemplo de cálculo para iqv_climate
              const climateQualityValue = ((cityData.temp_normalized * 0.6) + ((cityData.humidity_score / 6) * 0.4)) * 10; // Escala 0-10
 
              return {

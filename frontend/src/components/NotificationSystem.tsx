@@ -48,5 +48,4 @@ const NotificationSystem = () => {
     </div>
   );
 };
-
 export default NotificationSystem;

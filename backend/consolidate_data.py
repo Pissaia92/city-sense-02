@@ -1,7 +1,4 @@
-# backend/consolidate_data.py
-"""
-Script para consolidar todos os arquivos JSON de dados em um único Parquet.
-Este script coordena o processo e importa a lógica do módulo correto.
+"""Script para consolidar todos os arquivos JSON de dados em um único Parquet.
 """
 import sys
 import os

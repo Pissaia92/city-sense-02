@@ -6,6 +6,13 @@ import { LoadingState, ErrorState } from './components/State/States';
 import { CityHeader } from './components/CityHeader';
 import { MetricsGrid } from './components/MetricsGrid';
 import { IQVTips } from './components/IQVTips';
+import { CityComparison } from './components/CityComparison';
+import { IQVBreakdown } from './components/IQVBreakdown';
+import ForecastChart from './components/ForecastChart';
+import type { ForecastPoint } from 'components/Types/types';
+import { CityMap } from './components/CityMap';
+import NotificationSystem from './components/NotificationSystem';
+import { WeatherAlerts } from './components/WeatherAlerts';
 import { Footer } from './components/layout/Footer';
 import { ThemeContext } from './context/ThemeContext';
 import { DateTime } from 'luxon';
@@ -34,7 +41,6 @@ interface Metric {
   icon?: string;
   color?: string;
 }
-
 // --- Componente Principal da Aplicação ---
 const AppContent = () => {
   // --- Hooks e Contexto ---
@@ -47,10 +53,49 @@ const AppContent = () => {
   const [inputCity, setInputCity] = useState<string>('São Paulo');
   const [showSuggestions, setShowSuggestions] = useState<boolean>(false);
   const [comparisonCities, setComparisonCities] = useState<string[]>([]);
+  const [forecastData, setForecastData] = useState<ForecastPoint[] | null>(null);
   const searchRef = useRef<HTMLDivElement>(null);
 
-  // --- NOVO: Estado para armazenar as métricas transformadas ---
+  // --- Estado para armazenar as métricas transformadas ---
   const [metricsData, setMetricsData] = useState<Metric[]>([]);
+
+const fetchForecastData = useCallback(async (cityName: string) => {
+  // Defina a URL base da sua API (ajuste a porta se necessário)
+  const API_URL = 'http://localhost:8000'; // Ou use import.meta.env.VITE_API_URL
+  if (!cityName) {
+    setForecastData(null);
+    return;
+  }
+
+  try {
+    console.log(`🌤️ Fetching forecast for: ${cityName}`);
+    const response = await fetch(`${API_URL}/api/forecast?city=${encodeURIComponent(cityName)}`, {
+      signal: AbortSignal.timeout(8000) // Timeout de 8 segundos
+    });
+
+    if (!response.ok) {
+      // Tratamento de erro
+      const errorData = await response.json().catch(() => null);
+      const errorMessage = errorData?.detail || `Error ${response.status}: ${response.statusText}`;
+      console.warn('⚠️ Forecast not available:', errorMessage);
+      setForecastData(null);
+      return; // sair da função se houver erro
+    }
+
+    // --- PROCESSAMENTO DA RESPOSTA ---
+    const result = await response.json();
+    console.log('🌤️ Loaded forecast:', result.forecast);
+    setForecastData(result.forecast || []); // Define como array vazio se result.forecast for null/undefined
+  } catch (err: any) {
+    // Tratamento de erro
+    console.error('⚠️ Error fetching forecast:', err);
+    // Verifica se é um erro de timeout
+    if (err.name === 'AbortError') {
+        console.warn('⚠️ Forecast request timed out');
+    }
+    setForecastData(null);
+  }
+}, []);
 
   // --- Função auxiliar para formatar delay de trânsito ---
   const formatTrafficDelay = (delayInMinutes: number): string => {
@@ -61,7 +106,7 @@ const AppContent = () => {
     return minutes > 0 ? `${hours}h ${minutes}min` : `${hours}h`;
   };
 
-  // --- NOVO: Função para transformar dados em métricas ---
+  // --- Função para transformar dados em métricas ---
   const transformDataToMetrics = useCallback((apiData: IQVData | null): Metric[] => {
     if (!apiData) return [];
 
@@ -133,7 +178,7 @@ const AppContent = () => {
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputCity.trim()) {
-      setError("Por favor, insira o nome de uma cidade.");
+      setError("Insert a City name.");
       return;
     }
     setLoading(true);
@@ -142,16 +187,18 @@ const AppContent = () => {
     try {
       const fetchedData: IQVData = await fetchIQVData(inputCity);
       setData(fetchedData);
+      await fetchForecastData(inputCity); 
     } catch (err: any) {
-      console.error("Erro ao buscar dados da API:", err);
-      if (err.message.includes('Failed to fetch') || err.message.includes('conexão')) {
-        setError('Não foi possível conectar ao servidor. Verifique se o backend está rodando.');
+      console.error("API Error:", err);
+      if (err.message.includes('Failed to fetch') || err.message.includes('conection')) {
+        setError('Error connecting to the server...');
       } else if (err.message.includes('404')) {
-         setError(`Dados para a cidade '${inputCity}' não foram encontrados.`);
+         setError(`Data for '${inputCity}' was not found.`);
       } else {
-        setError(err.message || 'Falha ao obter dados. Tente novamente.');
+        setError(err.message || 'Failed getting data. Try again.');
       }
       setData(null);
+      setForecastData(null);
     } finally {
       setLoading(false);
     }
@@ -204,6 +251,7 @@ const AppContent = () => {
   return (
     <div className={darkMode ? 'dark' : ''}>
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-200">
+
         {/* Cabeçalho */}
         <Header darkMode={darkMode} data={data} city={data?.city || inputCity} />
         
@@ -226,6 +274,7 @@ const AppContent = () => {
         
         {/* Área Principal de Conteúdo */}
         <main className="container mx-auto px-4 pb-16">
+
           {/* Estado de Carregamento */}
           {loading && <LoadingState darkMode={darkMode} />}
           
@@ -237,46 +286,67 @@ const AppContent = () => {
           
           {/* Conteúdo Principal (Dados da Cidade) */}
           {!loading && data && (
-            <div className="space-y-8">
-              {/* CityHeader */}
-              <CityHeader
-                darkMode={darkMode}
-                data={data}
-                dataFormatada={dataFormatada}
-                getWeatherIcon={getWeatherIcon}
-              />
-              
-              {/* MetricsGrid - Corrigido: Fechado imediatamente */}
-              <MetricsGrid
-                darkMode={darkMode}
-                metrics={metricsData}
-              />
-              
-              {/* IQVTips - Corrigido: Renderizado como irmão, fora do MetricsGrid */}
-              <IQVTips
-                darkMode={darkMode}
-                data={{
-                  city: data.city,
-                  iqv_climate: ((data.temp_normalized * 0.5) + ((data.humidity_score / 6) * 0.5)) * 10,
-                  iqv_humidity: (data.humidity_score / 6) * 10,
-                  iqv_traffic: data.traffic_score,
-                  iqv_trend: 5, // Valor placeholder
-                  iqv_overall: data.predicted_iqv,
-                }}
-              />
+                <div className="space-y-8">
+                  
+                  {/* CityHeader */}
+                  <CityHeader
+                    darkMode={darkMode}
+                    data={data}
+                    dataFormatada={dataFormatada}
+                    getWeatherIcon={getWeatherIcon}
+                  />
 
-            </div>
-          )}
-          
-          {/* Estado Inicial */}
-          {!loading && !data && !error && (
-            <div className="text-center py-10">
-              <h2 className="text-2xl font-bold mb-4">Nenhuma cidade selecionada</h2>
-              <p className="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-                Digite o nome de uma cidade no campo acima para ver seu Índice de Qualidade de Vida Urbana.
-              </p>
-            </div>
-          )}
+                  {/* MetricsGrid */}
+                  <MetricsGrid
+                    darkMode={darkMode}
+                    metrics={metricsData}
+                  />
+
+                  {/* IQVBreakdown */}
+                  {data && (
+                    <IQVBreakdown
+                      darkMode={darkMode}
+                      data={{
+                        // Mapeando props esperadas pelo IQVBreakdown
+                        city: data.city,
+                        temperature: data.temperature,
+                        humidity: data.humidity,
+                        avg_traffic_delay_min: data.traffic_delay, // Mapeamento de nome
+                        // Cálculos para métricas que o componente espera mas a API não fornece diretamente
+                        iqv_climate: parseFloat((((data.temp_normalized * 0.5) + ((data.humidity_score / 6) * 0.5)) * 10).toFixed(2)),
+                        iqv_humidity: parseFloat(((data.humidity_score / 6) * 10).toFixed(2)),
+                        iqv_traffic: data.traffic_score,
+                        iqv_trend: 5, // Placeholder
+                      }}
+                    />
+                  )}
+                  {/* ForecastChart */}
+                    <ForecastChart
+                      darkMode={darkMode}
+                      data={forecastData}
+                    />
+                  {/* CityComparison - Adaptado para API Local e Funcional */}
+                  <CityComparison
+                    cities={comparisonCities}
+                    darkMode={darkMode}
+                    shouldFetch={true}
+                  />
+
+                  {/* CityMap - Adaptado e Funcional */}
+                  <CityMap
+                    city={data.city}
+                    temperature={data.temperature}
+                    iqv={data.predicted_iqv}
+                  />
+
+                  {/* NotificationSystem - Verifique props no componente */}
+                  <NotificationSystem/>
+
+                  {/* WeatherAlerts */}                  
+                  <WeatherAlerts alerts={[]} 
+                  />                 
+                </div>
+              )}
         </main>
         
         {/* Rodapé */}
