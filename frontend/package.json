@@ -4,9 +4,9 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-  "build": "vite build"
-},
-    "dependencies": {
+    "build": "vite build"
+  },
+  "dependencies": {
     "@heroicons/react": "^2.2.0",
     "@types/chart.js": "^2.9.41",
     "chart.js": "^4.5.0",
@@ -22,7 +22,13 @@
     "@types/maplibre-gl": "^1.13.2",
     "@types/react": "^18.2.15",
     "@types/react-dom": "^18.2.7",
+    "@typescript-eslint/eslint-plugin": "^8.43.0",
+    "@typescript-eslint/parser": "^8.43.0",
     "@vitejs/plugin-react": "^4.0.3",
+    "eslint": "^9.35.0",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "prettier": "^3.6.2",
     "rimraf": "^6.0.1",
     "typescript": "^5.9.2",
     "vite": "^7.0.6"
