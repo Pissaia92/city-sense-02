@@ -1,4 +1,4 @@
-import type { IQVData } from "../components/Types/types";
+import type { IQVData } from '../components/Types/types';
 
 export const getWeatherIcon = (data?: IQVData) => {
   if (!data) return '🌤️';

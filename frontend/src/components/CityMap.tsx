@@ -11,16 +11,17 @@ interface CityMapProps {
 export const CityMap = ({ city, temperature, iqv }: CityMapProps) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<MapType | null>(null);
-  
+
   useEffect(() => {
     if (!mapContainer.current) return;
 
     // Initial map setup
     map.current = new maplibregl.Map({
       container: mapContainer.current,
-      style: 'https://api.maptiler.com/maps/streets/style.json?key=get_your_own_D6rA4zTHduk6KOKm6K9g',
+      style:
+        'https://api.maptiler.com/maps/streets/style.json?key=get_your_own_D6rA4zTHduk6KOKm6K9g',
       center: [-46.633309, -23.55052], // São Paulo by default
-      zoom: 10
+      zoom: 10,
     });
 
     // Add navigation controls
@@ -34,14 +35,16 @@ export const CityMap = ({ city, temperature, iqv }: CityMapProps) => {
       }
     };
   }, []);
-  
+
   useEffect(() => {
     if (!map.current || !city) return;
 
     // Fetch city coordinates
-    fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(city)}&format=json&limit=1`)
-      .then(response => response.json())
-      .then(data => {
+    fetch(
+      `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(city)}&format=json&limit=1`
+    )
+      .then((response) => response.json())
+      .then((data) => {
         if (data && data.length > 0) {
           const [lon, lat] = [parseFloat(data[0].lon), parseFloat(data[0].lat)];
 
@@ -55,7 +58,7 @@ export const CityMap = ({ city, temperature, iqv }: CityMapProps) => {
               map.current.removeLayer('city-marker');
               map.current.removeSource('city-marker');
             }
-            
+
             // Add new marker
             map.current.addSource('city-marker', {
               type: 'geojson',
@@ -64,62 +67,69 @@ export const CityMap = ({ city, temperature, iqv }: CityMapProps) => {
                 properties: {},
                 geometry: {
                   type: 'Point',
-                  coordinates: [lon, lat]
-                }
-              }
+                  coordinates: [lon, lat],
+                },
+              },
             });
-            
+
             map.current.addLayer({
               id: 'city-marker',
               type: 'circle',
               source: 'city-marker',
               paint: {
                 'circle-radius': 10,
-                'circle-color': iqv >= 7 ? '#22c55e' : iqv >= 5 ? '#eab308' : '#ef4444',
+                'circle-color':
+                  iqv >= 7 ? '#22c55e' : iqv >= 5 ? '#eab308' : '#ef4444',
                 'circle-stroke-width': 2,
-                'circle-stroke-color': '#ffffff'
-              }
+                'circle-stroke-color': '#ffffff',
+              },
             });
-            
+
             // Add popup with information
             new maplibregl.Popup({ offset: 25 })
               .setLngLat([lon, lat])
-              .setHTML(`
+              .setHTML(
+                `
                 <div style="font-family: sans-serif;">
                   <h3 style="margin: 0 0 8px 0;">${city}</h3>
                   <div>🌡️ Temperatura: ${temperature}°C</div>
                   <div>📊 IQV: ${iqv.toFixed(1)}/10</div>
                 </div>
-              `)
+              `
+              )
               .addTo(map.current);
           }
         }
       })
-      .catch(error => {
+      .catch((error) => {
         console.error('Error fetching coordinates:', error);
       });
   }, [city, temperature, iqv]);
-  
+
   return (
-    <div style={{ 
-      height: '400px', 
-      borderRadius: '12px', 
-      overflow: 'hidden',
-      marginTop: '24px',
-      boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05)'
-    }}>
+    <div
+      style={{
+        height: '400px',
+        borderRadius: '12px',
+        overflow: 'hidden',
+        marginTop: '24px',
+        boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05)',
+      }}
+    >
       <div ref={mapContainer} style={{ width: '100%', height: '100%' }} />
-      
-      <div style={{
-        position: 'absolute',
-        bottom: '20px',
-        left: '50%',
-        transform: 'translateX(-50%)',
-        backgroundColor: 'rgba(255, 255, 255, 0.85)',
-        padding: '6px 12px',
-        borderRadius: '20px',
-        fontSize: '0.8rem'
-      }}>
+
+      <div
+        style={{
+          position: 'absolute',
+          bottom: '20px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          backgroundColor: 'rgba(255, 255, 255, 0.85)',
+          padding: '6px 12px',
+          borderRadius: '20px',
+          fontSize: '0.8rem',
+        }}
+      >
         Climate data integrated into the map
       </div>
     </div>

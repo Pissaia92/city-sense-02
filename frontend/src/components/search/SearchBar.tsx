@@ -25,7 +25,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
   isSearching,
   darkMode,
   searchRef,
-  onSelectSuggestion
+  onSelectSuggestion,
 }) => {
   return (
     <form onSubmit={handleSearch} style={{ marginBottom: '24px' }}>
@@ -43,25 +43,27 @@ const SearchBar: React.FC<SearchBarProps> = ({
             border: darkMode ? '1px solid #334155' : '1px solid #e2e8f0',
             backgroundColor: darkMode ? '#334155' : '#f1f5f9',
             color: darkMode ? '#e2e8f0' : '#1e293b',
-            width: '100%'
+            width: '100%',
           }}
         />
 
         {/* // Sugestões de cidades // */}
         {showSuggestions && suggestedCities.length > 0 && (
-          <div style={{
-            position: 'absolute',
-            top: '100%',
-            left: 0,
-            right: 0,
-            backgroundColor: darkMode ? '#1e293b' : 'white',
-            border: darkMode ? '1px solid #334155' : '1px solid #e2e8f0',
-            borderRadius: '6px',
-            maxHeight: '200px',
-            overflowY: 'auto',
-            zIndex: 1000,
-            marginTop: '4px'
-          }}>
+          <div
+            style={{
+              position: 'absolute',
+              top: '100%',
+              left: 0,
+              right: 0,
+              backgroundColor: darkMode ? '#1e293b' : 'white',
+              border: darkMode ? '1px solid #334155' : '1px solid #e2e8f0',
+              borderRadius: '6px',
+              maxHeight: '200px',
+              overflowY: 'auto',
+              zIndex: 1000,
+              marginTop: '4px',
+            }}
+          >
             {suggestedCities.map((suggestion, index) => (
               <div
                 key={index}
@@ -77,8 +79,10 @@ const SearchBar: React.FC<SearchBarProps> = ({
                 style={{
                   padding: '8px 12px',
                   cursor: 'pointer',
-                  borderBottom: darkMode ? '1px solid #334155' : '1px solid #e2e8f0',
-                  color: darkMode ? '#e2e8f0' : '#1e293b'
+                  borderBottom: darkMode
+                    ? '1px solid #334155'
+                    : '1px solid #e2e8f0',
+                  color: darkMode ? '#e2e8f0' : '#1e293b',
                 }}
               >
                 {suggestion}
@@ -87,7 +91,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
           </div>
         )}
       </div>
-      
+
       <button
         type="submit"
         disabled={isSearching}
@@ -99,7 +103,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
           borderRadius: '6px',
           cursor: isSearching ? 'not-allowed' : 'pointer',
           fontWeight: '600',
-          marginLeft: '8px'
+          marginLeft: '8px',
         }}
       >
         {isSearching ? 'Buscando...' : 'Buscar'}

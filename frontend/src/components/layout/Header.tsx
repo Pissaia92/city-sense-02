@@ -7,42 +7,55 @@ interface HeaderProps {
   toggleDarkMode?: () => void;
 }
 
-export const Header = ({ data, city, darkMode = false, toggleDarkMode }: HeaderProps) => {
+export const Header = ({
+  data,
+  city,
+  darkMode = false,
+  toggleDarkMode,
+}: HeaderProps) => {
   return (
-    <header style={{
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      padding: '16px 0',
-      marginBottom: '24px',
-      borderBottom: darkMode ? '1px solid #334155' : '1px solid #e2e8f0'
-    }}>
+    <header
+      style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        padding: '16px 0',
+        marginBottom: '24px',
+        borderBottom: darkMode ? '1px solid #334155' : '1px solid #e2e8f0',
+      }}
+    >
       <div>
-        <h1 style={{
-          fontSize: '2.5rem',
-          fontWeight: 'bold',
-          margin: 0,
-          color: darkMode ? '#f1f5f9' : '#0f172a',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '12px'
-        }}>
+        <h1
+          style={{
+            fontSize: '2.5rem',
+            fontWeight: 'bold',
+            margin: 0,
+            color: darkMode ? '#f1f5f9' : '#0f172a',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+          }}
+        >
           🌆 City Sense
         </h1>
-        <p style={{
-          color: darkMode ? '#94a3b8' : '#64748b',
-          marginTop: '4px',
-          fontSize: '1.1rem'
-        }}>
+        <p
+          style={{
+            color: darkMode ? '#94a3b8' : '#64748b',
+            marginTop: '4px',
+            fontSize: '1.1rem',
+          }}
+        >
           Quality of Life Index
         </p>
       </div>
-      
+
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-        <span style={{ 
-          color: darkMode ? '#94a3b8' : '#64748b',
-          fontSize: '0.9rem'
-        }}>
+        <span
+          style={{
+            color: darkMode ? '#94a3b8' : '#64748b',
+            fontSize: '0.9rem',
+          }}
+        >
           Color theme
         </span>
         <button
@@ -58,9 +71,9 @@ export const Header = ({ data, city, darkMode = false, toggleDarkMode }: HeaderP
             justifyContent: 'center',
             cursor: 'pointer',
             color: darkMode ? '#cbd5e1' : '#475569',
-            transition: 'all 0.3s ease'
+            transition: 'all 0.3s ease',
           }}
-          title={darkMode ? "Modo claro" : "Modo escuro"}
+          title={darkMode ? 'Modo claro' : 'Modo escuro'}
         >
           {darkMode ? '☀️' : '🌙'}
         </button>

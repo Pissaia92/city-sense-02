@@ -48,17 +48,14 @@ app = FastAPI(
 )
 
 from fastapi.middleware.cors import CORSMiddleware
-@app.middleware("http")
-async def add_cors_headers(request: Request, call_next):
-    response = await call_next(request)
-    origin = request.headers.get('origin')    
-    allowed_origin = "https://city-sense.vercel.app"
-    if origin == allowed_origin:
-        response.headers["Access-Control-Allow-Origin"] = allowed_origin
-        response.headers["Access-Control-Allow-Credentials"] = "true"
-        response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
-        response.headers["Access-Control-Allow-Headers"] = "*"    
-    return response
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173", "https://city-sense.vercel.app"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.options("/{rest_of_path:path}")
 async def options_handler(rest_of_path: str):
