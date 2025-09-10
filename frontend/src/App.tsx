@@ -142,41 +142,40 @@ const AppContent = () => {
   };
 
   const fetchData = async (cityName: string) => {
-    const formattedCity = cityName.trim().replace(/\s+/g, ' ');
-    if (!formattedCity) {
-      setError('Please enter a valid city');
-      setLoading(false);
+  const formattedCity = cityName.trim();
+  if (!formattedCity) return;
+
+  setLoading(true);
+  setError(null);
+
+  try {
+    console.log(`🔍 Fetching data for: ${formattedCity}`);
+    
+    const response = await fetch(
+      `${API_URL}/api/iqv?city=${encodeURIComponent(formattedCity)}`,
+      { signal: AbortSignal.timeout(10000) }
+    );
+
+    console.log(`📊 Response status: ${response.status}`);
+    
+    // Verificar o tipo de conteúdo da resposta
+    const contentType = response.headers.get('content-type');
+    console.log(`📄 Content-Type: ${contentType}`);
+
+    if (!response.ok) {
+      // Tentar ler a resposta como texto para entender melhor o erro
+      const errorText = await response.text().catch(() => 'Unknown error');
+      console.error(`❌ Error response text: ${errorText}`);
+      
+      const errorMessage = `Error ${response.status}: ${response.statusText}`;
+      if (response.status === 404) {
+        setError(`❌ City "${formattedCity}" not found. Check the name and try again.`);
+      } else {
+        setError(`⚠️ ${errorMessage}`);
+      }
+      setData(null);
       return;
     }
-    try {
-      setLoading(true);
-      setError(null);
-      setSearchTried(true);
-      console.log(`🔍 Fetching data for: ${formattedCity}`);
-      const response = await fetch(
-        `${API_URL}/api/iqv?city=${encodeURIComponent(formattedCity)}`,
-        {
-          signal: AbortSignal.timeout(10000),
-        }
-      );
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => null);
-        const errorMessage =
-          errorData?.detail ||
-          `Error ${response.status}: ${response.statusText}`;
-        if (
-          response.status === 404 &&
-          errorMessage.toLowerCase().includes('not found')
-        ) {
-          setError(
-            `❌ City "${formattedCity}" not found. Check the name and try again.`
-          );
-        } else {
-          setError(`⚠️ ${errorMessage}`);
-        }
-        setData(null);
-        return;
-      }
       const result = await response.json();
       console.log('✅ Data received:', result);
       setData(result);
@@ -199,36 +198,43 @@ const AppContent = () => {
   };
 
   const fetchForecast = async (cityName?: string) => {
-    const cityToFetch = cityName || city;
-    if (!cityToFetch) return;
-    try {
-      console.log(`🌤️ Fetching forecast for: ${cityToFetch}`);
-      const response = await fetch(
-        `${API_URL}/api/forecast?city=${encodeURIComponent(cityToFetch)}`,
-        {
-          signal: AbortSignal.timeout(8000),
-        }
-      );
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => null);
-        const errorMessage =
-          errorData?.detail ||
-          `Error ${response.status}: ${response.statusText}`;
-        console.warn('⚠️ Forecast not available:', errorMessage);
-        if (cityName === comparisonCity) setComparisonForecast(null);
-        else setForecast(null);
-        return;
-      }
+  const cityToFetch = cityName || city;
+  if (!cityToFetch) return;
+
+  try {
+    console.log(`🔍 Fetching forecast for: ${cityToFetch}`);
+    
+    const response = await fetch(
+      `${API_URL}/api/forecast?city=${encodeURIComponent(cityToFetch)}`,
+      { signal: AbortSignal.timeout(10000) }
+    );
+
+    console.log(`📊 Forecast response status: ${response.status}`);
+    
+    if (!response.ok) {
+      const errorText = await response.text().catch(() => 'Unknown error');
+      console.error(`❌ Forecast error: ${errorText}`);
+      if (cityName === comparisonCity) setComparisonForecast(null);
+      else setForecast(null);
+      return;
+    }
+
+    const contentType = response.headers.get('content-type');
+    if (contentType && contentType.includes('application/json')) {
       const result = await response.json();
       console.log('🌤️ Loaded forecast:', result.forecast);
       if (cityName === comparisonCity) setComparisonForecast(result.forecast);
       else setForecast(result.forecast);
-    } catch (err) {
-      console.error('⚠️ Error fetching forecast:', err);
-      if (cityName === comparisonCity) setComparisonForecast(null);
-      else setForecast(null);
+    } else {
+      const textResponse = await response.text();
+      console.error('❌ Expected JSON forecast but received:', textResponse);
     }
-  };
+  } catch (err) {
+    console.error('⚠️ Error fetching forecast:', err);
+    if (cityName === comparisonCity) setComparisonForecast(null);
+    else setForecast(null);
+  }
+};
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
