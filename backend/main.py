@@ -22,13 +22,17 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Import and include routers
-from routers import main, weather, ml, suggestions
+# Import routers directly
+import routers.main as main_router
+import routers.weather as weather_router
+import routers.ml as ml_router
+import routers.suggestions as suggestions_router
 
-app.include_router(main.router)
-app.include_router(weather.router)
-app.include_router(ml.router)
-app.include_router(suggestions.router)
+# Include routers
+app.include_router(main_router.router)
+app.include_router(weather_router.router)
+app.include_router(ml_router.router)
+app.include_router(suggestions_router.router)
 
 if __name__ == "__main__":
     import uvicorn
