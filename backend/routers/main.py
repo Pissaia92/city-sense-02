@@ -24,8 +24,9 @@ async def health_check():
 async def debug_info(request: Request):
     """Debug information endpoint"""
     api_key = os.getenv("OPENWEATHER_API_KEY", "")
+    client_host = request.client.host if request.client else "unknown"
     return {
-        "client_host": request.client.host if request.client else "unknown",
+        "client_host": client_host,
         "headers": dict(request.headers),
         "api_key_available": bool(api_key)
     }
@@ -33,4 +34,4 @@ async def debug_info(request: Request):
 @router.get("/")
 async def root():
     """Root endpoint"""
-    return {"message": "🌍 City Sense API - Documentação em /docs"}
+    return {"message": "🌍 City Sense API - Documentation in /docs"}

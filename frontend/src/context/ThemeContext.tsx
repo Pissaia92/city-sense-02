@@ -1,5 +1,4 @@
-// src/context/ThemeContext.tsx
-import { createContext, useState, useEffect, type ReactNode } from 'react';
+import React, { createContext, useState, useEffect, ReactNode } from 'react';
 
 interface ThemeContextType {
   darkMode: boolean;
@@ -11,19 +10,23 @@ export const ThemeContext = createContext<ThemeContextType>({
   toggleDarkMode: () => {},
 });
 
-export const ThemeProvider = ({ children }: { children: ReactNode }) => {
-  const [darkMode, setDarkMode] = useState(() => {
-    const saved = localStorage.getItem('city-sense-dark-mode');
-    if (saved !== null) return JSON.parse(saved);
-    return window.matchMedia('(prefers-color-scheme: dark)').matches;
-  });
+interface ThemeProviderProps {
+  children: ReactNode;
+}
+
+export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
+  const [darkMode, setDarkMode] = useState(false);
 
   useEffect(() => {
-    localStorage.setItem('city-sense-dark-mode', JSON.stringify(darkMode));
-    document.documentElement.classList.toggle('dark', darkMode);
-  }, [darkMode]);
+    const isDark = localStorage.getItem('darkMode') === 'true';
+    setDarkMode(isDark);
+  }, []);
 
-  const toggleDarkMode = () => setDarkMode(!darkMode);
+  const toggleDarkMode = () => {
+    const newMode = !darkMode;
+    setDarkMode(newMode);
+    localStorage.setItem('darkMode', String(newMode));
+  };
 
   return (
     <ThemeContext.Provider value={{ darkMode, toggleDarkMode }}>

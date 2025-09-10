@@ -1,115 +1,92 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 
 interface SearchBarProps {
   inputCity: string;
+  setInputCity: (value: string) => void;
+  onSearch: (city: string) => void;
+  fetchSuggestions: (query: string) => Promise<string[]>;
   showSuggestions: boolean;
-  suggestedCities: string[];
-  setInputCity: React.Dispatch<React.SetStateAction<string>>;
-  setShowSuggestions: React.Dispatch<React.SetStateAction<boolean>>;
-  handleSearch: (e: React.FormEvent) => void;
-  handleCitySelect: (city: string) => void;
-  isSearching: boolean;
-  darkMode: boolean;
-  searchRef?: React.RefObject<HTMLDivElement>;
-  onSelectSuggestion?: (suggestion: string) => void;
+  setShowSuggestions: (show: boolean) => void;
+  searchRef: React.RefObject<HTMLDivElement>;
 }
 
-const SearchBar: React.FC<SearchBarProps> = ({
+export const SearchBar: React.FC<SearchBarProps> = ({
   inputCity,
-  showSuggestions,
-  suggestedCities,
   setInputCity,
+  onSearch,
+  fetchSuggestions,
+  showSuggestions,
   setShowSuggestions,
-  handleSearch,
-  handleCitySelect,
-  isSearching,
-  darkMode,
-  searchRef,
-  onSelectSuggestion,
+  searchRef
 }) => {
-  return (
-    <form onSubmit={handleSearch} style={{ marginBottom: '24px' }}>
-      <div ref={searchRef} style={{ position: 'relative' }}>
-        <input
-          type="text"
-          value={inputCity}
-          onChange={(e) => {
-            setInputCity(e.target.value);
-          }}
-          placeholder="Digite o nome da cidade"
-          style={{
-            padding: '8px 12px',
-            borderRadius: '6px',
-            border: darkMode ? '1px solid #334155' : '1px solid #e2e8f0',
-            backgroundColor: darkMode ? '#334155' : '#f1f5f9',
-            color: darkMode ? '#e2e8f0' : '#1e293b',
-            width: '100%',
-          }}
-        />
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
 
-        {/* // Sugestões de cidades // */}
-        {showSuggestions && suggestedCities.length > 0 && (
-          <div
-            style={{
-              position: 'absolute',
-              top: '100%',
-              left: 0,
-              right: 0,
-              backgroundColor: darkMode ? '#1e293b' : 'white',
-              border: darkMode ? '1px solid #334155' : '1px solid #e2e8f0',
-              borderRadius: '6px',
-              maxHeight: '200px',
-              overflowY: 'auto',
-              zIndex: 1000,
-              marginTop: '4px',
-            }}
-          >
-            {suggestedCities.map((suggestion, index) => (
+  useEffect(() => {
+    const loadSuggestions = async () => {
+      if (inputCity.trim() && showSuggestions) {
+        setIsLoadingSuggestions(true);
+        const results = await fetchSuggestions(inputCity);
+        setSuggestions(results);
+        setIsLoadingSuggestions(false);
+      } else {
+        setSuggestions([]);
+      }
+    };
+
+    const timeoutId = setTimeout(loadSuggestions, 300);
+    return () => clearTimeout(timeoutId);
+  }, [inputCity, showSuggestions, fetchSuggestions]);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (inputCity.trim()) {
+      onSearch(inputCity);
+      setShowSuggestions(false);
+    }
+  };
+
+  const handleSuggestionClick = (suggestion: string) => {
+    setInputCity(suggestion);
+    onSearch(suggestion);
+    setShowSuggestions(false);
+  };
+
+  return (
+    <div className="search-container" ref={searchRef}>
+      <form onSubmit={handleSubmit} className="search-form">
+        <div className="search-input-container">
+          <input
+            type="text"
+            value={inputCity}
+            onChange={(e) => setInputCity(e.target.value)}
+            onFocus={() => setShowSuggestions(true)}
+            placeholder="Digite o nome de uma cidade..."
+            className="search-input"
+          />
+          <button type="submit" className="search-button">
+            🔍
+          </button>
+        </div>
+      </form>
+
+      {showSuggestions && suggestions.length > 0 && (
+        <div className="suggestions-dropdown">
+          {isLoadingSuggestions ? (
+            <div className="suggestion-item">Carregando...</div>
+          ) : (
+            suggestions.map((suggestion, index) => (
               <div
                 key={index}
-                onClick={() => {
-                  setInputCity(suggestion);
-                  setShowSuggestions(false);
-                  if (onSelectSuggestion) {
-                    onSelectSuggestion(suggestion);
-                  } else {
-                    handleCitySelect(suggestion);
-                  }
-                }}
-                style={{
-                  padding: '8px 12px',
-                  cursor: 'pointer',
-                  borderBottom: darkMode
-                    ? '1px solid #334155'
-                    : '1px solid #e2e8f0',
-                  color: darkMode ? '#e2e8f0' : '#1e293b',
-                }}
+                className="suggestion-item"
+                onClick={() => handleSuggestionClick(suggestion)}
               >
                 {suggestion}
               </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      <button
-        type="submit"
-        disabled={isSearching}
-        style={{
-          padding: '10px 20px',
-          backgroundColor: darkMode ? '#3b82f6' : '#2563eb',
-          color: 'white',
-          border: 'none',
-          borderRadius: '6px',
-          cursor: isSearching ? 'not-allowed' : 'pointer',
-          fontWeight: '600',
-          marginLeft: '8px',
-        }}
-      >
-        {isSearching ? 'Buscando...' : 'Buscar'}
-      </button>
-    </form>
+            ))
+          )}
+        </div>
+      )}
+    </div>
   );
 };
-
-export { SearchBar };
