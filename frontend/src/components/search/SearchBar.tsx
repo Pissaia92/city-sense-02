@@ -1,92 +1,56 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { 
+  Box, 
+  Input, 
+  Button, 
+  Center,
+  Flex
+} from '@chakra-ui/react';
 
 interface SearchBarProps {
-  inputCity: string;
-  setInputCity: (value: string) => void;
   onSearch: (city: string) => void;
-  fetchSuggestions: (query: string) => Promise<string[]>;
-  showSuggestions: boolean;
-  setShowSuggestions: (show: boolean) => void;
-  searchRef: React.RefObject<HTMLDivElement>;
+  initialCity?: string;
+  setInputCity?: (city: string) => void;
 }
 
-export const SearchBar: React.FC<SearchBarProps> = ({
-  inputCity,
-  setInputCity,
-  onSearch,
-  fetchSuggestions,
-  showSuggestions,
-  setShowSuggestions,
-  searchRef
-}) => {
-  const [suggestions, setSuggestions] = useState<string[]>([]);
-  const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
-
-  useEffect(() => {
-    const loadSuggestions = async () => {
-      if (inputCity.trim() && showSuggestions) {
-        setIsLoadingSuggestions(true);
-        const results = await fetchSuggestions(inputCity);
-        setSuggestions(results);
-        setIsLoadingSuggestions(false);
-      } else {
-        setSuggestions([]);
-      }
-    };
-
-    const timeoutId = setTimeout(loadSuggestions, 300);
-    return () => clearTimeout(timeoutId);
-  }, [inputCity, showSuggestions, fetchSuggestions]);
+export const SearchBar: React.FC<SearchBarProps> = ({ onSearch, initialCity = 'São Paulo', setInputCity }) => {
+  const [inputValue, setInputValue] = useState(initialCity);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (inputCity.trim()) {
-      onSearch(inputCity);
-      setShowSuggestions(false);
+    if (inputValue.trim()) {
+      onSearch(inputValue);
+      if (setInputCity) {
+        setInputCity(inputValue);
+      }
     }
   };
 
-  const handleSuggestionClick = (suggestion: string) => {
-    setInputCity(suggestion);
-    onSearch(suggestion);
-    setShowSuggestions(false);
-  };
-
   return (
-    <div className="search-container" ref={searchRef}>
-      <form onSubmit={handleSubmit} className="search-form">
-        <div className="search-input-container">
-          <input
-            type="text"
-            value={inputCity}
-            onChange={(e) => setInputCity(e.target.value)}
-            onFocus={() => setShowSuggestions(true)}
-            placeholder="Digite o nome de uma cidade..."
-            className="search-input"
-          />
-          <button type="submit" className="search-button">
-            🔍
-          </button>
-        </div>
-      </form>
-
-      {showSuggestions && suggestions.length > 0 && (
-        <div className="suggestions-dropdown">
-          {isLoadingSuggestions ? (
-            <div className="suggestion-item">Carregando...</div>
-          ) : (
-            suggestions.map((suggestion, index) => (
-              <div
-                key={index}
-                className="suggestion-item"
-                onClick={() => handleSuggestionClick(suggestion)}
-              >
-                {suggestion}
-              </div>
-            ))
-          )}
-        </div>
-      )}
-    </div>
+    <Center py={4}>
+      <Box width="100%" maxWidth="600px">
+        <form onSubmit={handleSubmit}>
+          <Flex>
+            <Input
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              placeholder="Enter city name..."
+              size="lg"
+              borderRadius="full"
+              mr={2}
+            />
+            <Button 
+              type="submit" 
+              size="lg"
+              borderRadius="full"
+              colorScheme="blue"
+              aria-label="Search city"
+            >
+              🔍
+            </Button>
+          </Flex>
+        </form>
+      </Box>
+    </Center>
   );
 };

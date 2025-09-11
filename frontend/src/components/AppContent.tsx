@@ -1,9 +1,27 @@
 import React, { useState, useEffect, useContext, useRef } from 'react';
 import { ThemeContext } from '../context/ThemeContext';
 
+// Chakra UI Components
+import { 
+  Box, 
+  Center, 
+  Container,
+  Flex,
+  Heading,
+  Text,
+  useColorModeValue,
+  IconButton,
+  Tooltip,
+  Badge
+} from '@chakra-ui/react';
+
+// Icons
+import { SunIcon, MoonIcon } from '@chakra-ui/icons';
+
 // UI Components
 import { LoadingState, ErrorState } from './ui/States';
 import { InitialState } from './ui/InitialState';
+import { SearchBar } from './search/SearchBar';
 
 // City Components
 import { CityHeader } from './city/CityHeader';
@@ -43,6 +61,7 @@ interface IQVData {
   weather?: {
     description: string;
   };
+  description?: string;
 }
 
 interface AppContentProps {
@@ -50,13 +69,12 @@ interface AppContentProps {
 }
 
 export const AppContent: React.FC<AppContentProps> = ({ API_URL }) => {
-  const { darkMode } = useContext(ThemeContext);
+  const { darkMode, toggleDarkMode } = useContext(ThemeContext);
   const [data, setData] = useState<IQVData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [city, setCity] = useState<string | null>(null);
   const [inputCity, setInputCity] = useState('São Paulo');
-  const [showSuggestions, setShowSuggestions] = useState(false);
   const [forecast, setForecast] = useState<ForecastPoint[] | null>(null);
   const [comparisonCity, setComparisonCity] = useState<string>('');
   const [comparisonData, setComparisonData] = useState<IQVData | null>(null);
@@ -72,7 +90,7 @@ export const AppContent: React.FC<AppContentProps> = ({ API_URL }) => {
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
-        setShowSuggestions(false);
+        // setShowSuggestions(false); // Removido pois não está sendo usado
       }
       if (comparisonSearchRef.current && !comparisonSearchRef.current.contains(event.target as Node)) {
         setShowComparisonSuggestions(false);
@@ -165,7 +183,7 @@ export const AppContent: React.FC<AppContentProps> = ({ API_URL }) => {
         setData(null);
       }
     } catch (err: any) {
-      console.error('🚨 Error fetching data:', err);
+      console.error('🚨 Error fetching ', err);
       if (err.name === 'AbortError') {
         setError('⏳ Timeout exceeded. Please try again.');
       } else if (err.message.includes('Failed to fetch')) {
@@ -271,6 +289,13 @@ export const AppContent: React.FC<AppContentProps> = ({ API_URL }) => {
     }
   };
 
+  // Theme colors
+  const bgColor = useColorModeValue('gray.50', 'gray.900');
+  const textColor = useColorModeValue('gray.800', 'white');
+  const headerBg = useColorModeValue('white', 'gray.800');
+  const borderColor = useColorModeValue('gray.200', 'gray.700');
+  const subtitleColor = useColorModeValue('gray.600', 'gray.400');
+
   if (loading && !data) {
     return <LoadingState />;
   }
@@ -284,68 +309,130 @@ export const AppContent: React.FC<AppContentProps> = ({ API_URL }) => {
   }
 
   return (
-    <div className="app-content">
-      <header className="app-header">
-        <div className="header-content">
-          <h1>🌍 City Sense</h1>
-          <div className="header-controls">
-            <button 
-              onClick={() => {}}
-              className="theme-toggle"
-              aria-label={darkMode ? "Switch to light mode" : "Switch to dark mode"}
+    <Box 
+      minH="100vh" 
+      bg={bgColor}
+      color={textColor}
+    >
+      {/* Modern Header with Gradient */}
+      <Box 
+        bgGradient={useColorModeValue(
+          'linear(to-r, brand.400, brand.600)', 
+          'linear(to-r, brand.600, brand.800)'
+        )}
+        py={4}
+        boxShadow="sm"
+      >
+        <Container maxW="container.xl">
+          <Flex 
+            justify="space-between" 
+            align="center"
+            py={2}
+          >
+            <Flex align="center" gap={3}>
+              <Box 
+                fontSize="2xl" 
+                fontWeight="bold"
+                color="white"
+              >
+                🌍 City Sense
+              </Box>
+              <Badge 
+                colorScheme="green" 
+                variant="solid"
+                fontSize="xs"
+                borderRadius="full"
+                px={2}
+              >
+                BETA
+              </Badge>
+            </Flex>
+            
+            <Tooltip 
+              label={darkMode ? "Switch to light mode" : "Switch to dark mode"}
+              placement="bottom"
             >
-              {darkMode ? '☀️' : '🌙'}
-            </button>
-          </div>
-        </div>
-        <div className="city-info">
-          <h2>{data.city}, {data.country}</h2>
-          <p>Updated: {new Date(data.timestamp).toLocaleString()}</p>
-        </div>
-      </header>
-      
-      <div className="search-container" ref={searchRef}>
-        <form onSubmit={(e) => { e.preventDefault(); fetchData(inputCity); }} className="search-form">
-          <div className="search-input-container">
-            <input
-              type="text"
-              value={inputCity}
-              onChange={(e) => setInputCity(e.target.value)}
-              onFocus={() => setShowSuggestions(true)}
-              placeholder="Enter city name..."
-              className="search-input"
+              <IconButton
+                onClick={toggleDarkMode}
+                aria-label={darkMode ? "Switch to light mode" : "Switch to dark mode"}
+                icon={darkMode ? <SunIcon /> : <MoonIcon />}
+                variant="ghost"
+                color="white"
+                _hover={{
+                  bg: useColorModeValue('brand.500', 'brand.700'),
+                  transform: 'scale(1.1)',
+                }}
+                transition="all 0.2s"
+              />
+            </Tooltip>
+          </Flex>
+        </Container>
+      </Box>
+
+      {/* Search Section with Modern Styling */}
+      <Container maxW="container.xl" py={6}>
+        <Center>
+          <Box w="100%" maxW="xl">
+            <SearchBar 
+              onSearch={fetchData}
+              initialCity={inputCity}
+              setInputCity={setInputCity}
             />
-            <button type="submit" className="search-button">
-              🔍
-            </button>
-          </div>
-        </form>
-      </div>
+          </Box>
+        </Center>
 
-      <CityHeader data={data} />
-      
-      <MetricsGrid data={data} />
-      
-      <IQVBreakdown data={data} />
+        {/* City Info Header */}
+        <Box 
+          textAlign="center" 
+          p={6} 
+          bg={headerBg}
+          borderRadius="xl" 
+          mb={8}
+          boxShadow="lg"
+          border="1px"
+          borderColor={borderColor}
+          transition="all 0.3s"
+          _hover={{
+            transform: 'translateY(-2px)',
+            boxShadow: 'xl',
+          }}
+        >
+          <Heading size="lg" mb={2} color={textColor}>
+            {data.city}, {data.country}
+          </Heading>
+          <Text color={subtitleColor} fontSize="sm">
+            Updated: {new Date(data.timestamp).toLocaleString()}
+          </Text>
+        </Box>
 
-      <ForecastSection 
-        forecast={forecast} 
-        mlPrediction={mlPrediction}
-      />
+        {/* Main Content */}
+        <Box>
+          <CityHeader data={data} />
+          
+          <MetricsGrid data={data} />
+          
+          <IQVBreakdown data={data} />
 
-      <CityComparison
-        comparisonCity={comparisonCity}
-        setComparisonCity={setComparisonCity}
-        comparisonData={comparisonData}
-        comparisonForecast={comparisonForecast}
-        fetchComparisonData={fetchComparisonData}
-        fetchSuggestions={fetchSuggestions}
-        showComparisonSuggestions={showComparisonSuggestions}
-        setShowComparisonSuggestions={setShowComparisonSuggestions}
-        comparisonSearchRef={comparisonSearchRef}
-      />
+          <ForecastSection 
+            forecast={forecast} 
+            mlPrediction={mlPrediction}
+          />
 
-      <CityMap data={data} />
-    </div>
+          <CityComparison
+            comparisonCity={comparisonCity}
+            setComparisonCity={setComparisonCity}
+            comparisonData={comparisonData}
+            comparisonForecast={comparisonForecast}
+            fetchComparisonData={fetchComparisonData}
+            fetchSuggestions={fetchSuggestions}
+            showComparisonSuggestions={showComparisonSuggestions}
+            setShowComparisonSuggestions={setShowComparisonSuggestions}
+            comparisonSearchRef={comparisonSearchRef}
+          />
+
+          <CityMap data={data} />
+        </Box>
+      </Container>
+    </Box>
   );
 };
