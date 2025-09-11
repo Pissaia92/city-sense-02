@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useContext, useRef } from 'react';
 import { ThemeContext } from '../context/ThemeContext';
+import { WeatherRadarMap } from '../components/data/WeatherRadarMap.tsx';
 
 // Chakra UI Components
 import { 
@@ -377,33 +378,10 @@ export const AppContent: React.FC<AppContentProps> = ({ API_URL }) => {
               onSearch={fetchData}
               initialCity={inputCity}
               setInputCity={setInputCity}
+              fetchSuggestions={fetchSuggestions}
             />
           </Box>
         </Center>
-
-        {/* City Info Header */}
-        <Box 
-          textAlign="center" 
-          p={6} 
-          bg={headerBg}
-          borderRadius="xl" 
-          mb={8}
-          boxShadow="lg"
-          border="1px"
-          borderColor={borderColor}
-          transition="all 0.3s"
-          _hover={{
-            transform: 'translateY(-2px)',
-            boxShadow: 'xl',
-          }}
-        >
-          <Heading size="lg" mb={2} color={textColor}>
-            {data.city}, {data.country}
-          </Heading>
-          <Text color={subtitleColor} fontSize="sm">
-            Updated: {new Date(data.timestamp).toLocaleString()}
-          </Text>
-        </Box>
 
         {/* Main Content */}
         <Box>
@@ -417,6 +395,7 @@ export const AppContent: React.FC<AppContentProps> = ({ API_URL }) => {
             forecast={forecast} 
             mlPrediction={mlPrediction}
           />
+          <WeatherRadarMap data={data} />
 
           <CityComparison
             comparisonCity={comparisonCity}
