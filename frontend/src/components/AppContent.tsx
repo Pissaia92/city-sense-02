@@ -27,7 +27,7 @@ import { SearchBar } from './search/SearchBar';
 // City Components
 import { CityHeader } from './city/CityHeader';
 import { CityComparison } from './city/CityComparison';
-import { CityMap } from './city/CityMap';
+// import { CityMap } from './city/CityMap';
 
 // Data Components
 import { MetricsGrid } from './data/MetricsGrid';
@@ -409,7 +409,7 @@ export const AppContent: React.FC<AppContentProps> = ({ API_URL }) => {
             comparisonSearchRef={comparisonSearchRef}
           />
 
-          <CityMap data={data} />
+          {/* <CityMap data={data} /> */}
         </Box>
       </Container>
     </Box>
