@@ -1,20 +1,21 @@
-import { extendTheme } from '@chakra-ui/react';
+import { extendTheme, type ThemeConfig } from '@chakra-ui/react';
+
+const config: ThemeConfig = {
+  initialColorMode: 'light', // Valor padrão, será sobrescrito
+  useSystemColorMode: false,
+};
 
 // Custom theme for City Sense
 const theme = extendTheme({
-config: {
-initialColorMode: 'system',
-useSystemColorMode: false,
-},
-colors: {
-// Modern color palette consistent with the urban/environmental theme
-brand: {
+config,
+  colors: {
+    brand: {
 50: '#e6f7ff',
 100: '#b3e0ff',
 200: '#80c9ff',
 300: '#4db2ff',
 400: '#1a9bff',
-500: '#007acc', // Main blue - reliable and technological
+500: '#007acc', 
 600: '#005a99',
 700: '#003d66',
 800: '#001f33',

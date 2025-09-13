@@ -1,76 +1,41 @@
-import React, { useState, useEffect, useContext, useRef } from 'react';
-import { ThemeContext } from '../context/ThemeContext';
-import { WeatherRadarMap } from '../components/data/WeatherRadarMap.tsx';
-
+// frontend/src/components/AppContent.tsx
+import React, { useState, useEffect, useRef } from 'react';
+import { useTheme } from '../context/ThemeContext';
+import { WeatherRadarMap } from '../components/data/WeatherRadarMap';
 // Chakra UI Components
 import { 
   Box, 
   Center, 
   Container,
   Flex,
-  Heading,
-  Text,
   useColorModeValue,
   IconButton,
   Tooltip,
   Badge
 } from '@chakra-ui/react';
-
 // Icons
 import { SunIcon, MoonIcon } from '@chakra-ui/icons';
-
 // UI Components
 import { LoadingState, ErrorState } from './ui/States';
 import { InitialState } from './ui/InitialState';
 import { SearchBar } from './search/SearchBar';
-
 // City Components
 import { CityHeader } from './city/CityHeader';
 import { CityComparison } from './city/CityComparison';
-// import { CityMap } from './city/CityMap';
-
 // Data Components
 import { MetricsGrid } from './data/MetricsGrid';
 import { IQVBreakdown } from './data/IQVBreakdown';
 import { ForecastSection } from './data/ForecastSection';
-
-// Types
-interface ForecastPoint {
-  datetime: string;
-  temperature: number;
-  humidity: number;
-  wind_speed: number;
-  description: string;
-  icon: string;
-}
-
-interface IQVData {
-  city: string;
-  country: string;
-  temperature: number;
-  humidity: number;
-  wind_speed: number;
-  iqv_components: {
-    temperature: number;
-    humidity: number;
-    wind: number;
-    overall: number;
-  };
-  timestamp: string;
-  latitude: number;
-  longitude: number;
-  weather?: {
-    description: string;
-  };
-  description?: string;
-}
+// Types - Import from the correct location
+import { IQVData, ForecastPoint } from '../types'; 
 
 interface AppContentProps {
   API_URL: string;
 }
 
 export const AppContent: React.FC<AppContentProps> = ({ API_URL }) => {
-  const { darkMode, toggleDarkMode } = useContext(ThemeContext);
+  // ✅ Correct usage of ThemeContext
+  const { theme, toggleTheme } = useTheme();
   const [data, setData] = useState<IQVData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -83,7 +48,6 @@ export const AppContent: React.FC<AppContentProps> = ({ API_URL }) => {
   const [showComparisonSuggestions, setShowComparisonSuggestions] = useState(false);
   const [searchTried, setSearchTried] = useState(false);
   const [mlPrediction, setMlPrediction] = useState<any>(null);
-  
   const searchRef = useRef<HTMLDivElement>(null);
   const comparisonSearchRef = useRef<HTMLDivElement>(null);
 
@@ -91,13 +55,12 @@ export const AppContent: React.FC<AppContentProps> = ({ API_URL }) => {
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
-        // setShowSuggestions(false); // Removido pois não está sendo usado
+        // setShowSuggestions(false); // Removed as it's not used
       }
       if (comparisonSearchRef.current && !comparisonSearchRef.current.contains(event.target as Node)) {
         setShowComparisonSuggestions(false);
       }
     };
-
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
@@ -107,11 +70,9 @@ export const AppContent: React.FC<AppContentProps> = ({ API_URL }) => {
     if (!searchTried) {
       fetchData('São Paulo');
     }
-    
     const interval = setInterval(() => {
       if (city) fetchData(city);
-    }, 60000);
-
+    }, 60000); // Refresh every minute
     return () => clearInterval(interval);
   }, [city, searchTried]);
 
@@ -119,12 +80,10 @@ export const AppContent: React.FC<AppContentProps> = ({ API_URL }) => {
   useEffect(() => {
     if (city) {
       fetchForecast();
-      
       const interval = setInterval(() => {
         fetchForecast();
         if (comparisonCity) fetchForecast(comparisonCity);
-      }, 300000);
-
+      }, 300000); // Refresh every 5 minutes
       return () => clearInterval(interval);
     }
   }, [city, comparisonCity]);
@@ -133,8 +92,7 @@ export const AppContent: React.FC<AppContentProps> = ({ API_URL }) => {
   useEffect(() => {
     if (city && data) {
       fetchMLPrediction();
-      
-      const interval = setInterval(fetchMLPrediction, 1800000);
+      const interval = setInterval(fetchMLPrediction, 1800000); // Refresh every 30 minutes
       return () => clearInterval(interval);
     }
   }, [city, data]);
@@ -142,24 +100,18 @@ export const AppContent: React.FC<AppContentProps> = ({ API_URL }) => {
   const fetchData = async (cityName: string) => {
     const formattedCity = cityName.trim();
     if (!formattedCity) return;
-
     setLoading(true);
     setError(null);
-
     try {
       console.log(`🔍 Fetching data for: ${formattedCity}`);
-      
       const response = await fetch(
         `${API_URL}/api/iqv?city=${encodeURIComponent(formattedCity)}`,
-        { signal: AbortSignal.timeout(10000) }
+        { signal: AbortSignal.timeout(10000) } // 10 second timeout
       );
-
       console.log(`📊 Response status: ${response.status}`);
-      
       if (!response.ok) {
         const errorText = await response.text().catch(() => 'Unknown error');
         console.error(`❌ Error response text: ${errorText}`);
-        
         const errorMessage = `Error ${response.status}: ${response.statusText}`;
         if (response.status === 404) {
           setError(`❌ City "${formattedCity}" not found. Check the name and try again.`);
@@ -169,10 +121,9 @@ export const AppContent: React.FC<AppContentProps> = ({ API_URL }) => {
         setData(null);
         return;
       }
-
       const contentType = response.headers.get('content-type');
       if (contentType && contentType.includes('application/json')) {
-        const result = await response.json();
+        const result: IQVData = await response.json(); // Explicit typing
         console.log('✅ Data received:', result);
         setData(result);
         setCity(formattedCity);
@@ -201,17 +152,13 @@ export const AppContent: React.FC<AppContentProps> = ({ API_URL }) => {
   const fetchForecast = async (cityName?: string) => {
     const cityToFetch = cityName || city;
     if (!cityToFetch) return;
-
     try {
       console.log(`🔍 Fetching forecast for: ${cityToFetch}`);
-      
       const response = await fetch(
         `${API_URL}/api/forecast?city=${encodeURIComponent(cityToFetch)}`,
-        { signal: AbortSignal.timeout(10000) }
+        { signal: AbortSignal.timeout(10000) } // 10 second timeout
       );
-
       console.log(`📊 Forecast response status: ${response.status}`);
-      
       if (!response.ok) {
         const errorText = await response.text().catch(() => 'Unknown error');
         console.error(`❌ Forecast error: ${errorText}`);
@@ -219,13 +166,15 @@ export const AppContent: React.FC<AppContentProps> = ({ API_URL }) => {
         else setForecast(null);
         return;
       }
-
       const contentType = response.headers.get('content-type');
       if (contentType && contentType.includes('application/json')) {
         const result = await response.json();
         console.log('🌤️ Loaded forecast:', result.forecast);
-        if (cityName === comparisonCity) setComparisonForecast(result.forecast);
-        else setForecast(result.forecast);
+        // Explicit typing for the forecast
+        setForecast(result.forecast as ForecastPoint[] | undefined ?? null);
+        if (cityName === comparisonCity) {
+            setComparisonForecast(result.forecast as ForecastPoint[] | undefined ?? null);
+        }
       } else {
         const textResponse = await response.text();
         console.error('❌ Expected JSON forecast but received:', textResponse);
@@ -239,13 +188,11 @@ export const AppContent: React.FC<AppContentProps> = ({ API_URL }) => {
 
   const fetchMLPrediction = async () => {
     if (!city) return;
-    
     try {
       const response = await fetch(
         `${API_URL}/api/predict/iqv?city=${encodeURIComponent(city)}`,
-        { signal: AbortSignal.timeout(15000) }
+        { signal: AbortSignal.timeout(15000) } // 15 second timeout
       );
-
       if (response.ok) {
         const result = await response.json();
         setMlPrediction(result);
@@ -257,7 +204,6 @@ export const AppContent: React.FC<AppContentProps> = ({ API_URL }) => {
 
   const fetchSuggestions = async (query: string) => {
     if (!query.trim()) return [];
-    
     try {
       const response = await fetch(`${API_URL}/api/suggestions?query=${encodeURIComponent(query)}`);
       if (response.ok) {
@@ -276,11 +222,10 @@ export const AppContent: React.FC<AppContentProps> = ({ API_URL }) => {
       setComparisonForecast(null);
       return;
     }
-
     try {
       const response = await fetch(`${API_URL}/api/iqv?city=${encodeURIComponent(cityName)}`);
       if (response.ok) {
-        const result = await response.json();
+        const result: IQVData = await response.json(); // Explicit typing
         setComparisonData(result);
         setComparisonCity(cityName);
       }
@@ -290,24 +235,31 @@ export const AppContent: React.FC<AppContentProps> = ({ API_URL }) => {
     }
   };
 
-  // Theme colors
+  // Theme colors - Still using useColorModeValue for base elements
+  // But for specific overrides based on our context, we'll use conditionals
   const bgColor = useColorModeValue('gray.50', 'gray.900');
   const textColor = useColorModeValue('gray.800', 'white');
-  const headerBg = useColorModeValue('white', 'gray.800');
-  const borderColor = useColorModeValue('gray.200', 'gray.700');
-  const subtitleColor = useColorModeValue('gray.600', 'gray.400');
+  
+  // Determine theme-specific values based on our ThemeContext
+  const isDarkMode = theme === 'dark';
+  const headerGradient = isDarkMode 
+    ? 'linear(to-r, brand.600, brand.800)' 
+    : 'linear(to-r, brand.400, brand.600)';
+  const iconButtonHoverBg = isDarkMode ? 'brand.700' : 'brand.500';
 
   if (loading && !data) {
     return <LoadingState />;
   }
-
   if (error) {
     return <ErrorState message={error} onRetry={() => fetchData(inputCity || 'São Paulo')} />;
   }
-
   if (!data) {
     return <InitialState onFetchData={fetchData} />;
   }
+
+  // Determine icon and label based on our ThemeContext state
+  const themeIcon = isDarkMode ? <SunIcon /> : <MoonIcon />;
+  const themeLabel = isDarkMode ? "Switch to light mode" : "Switch to dark mode";
 
   return (
     <Box 
@@ -315,12 +267,9 @@ export const AppContent: React.FC<AppContentProps> = ({ API_URL }) => {
       bg={bgColor}
       color={textColor}
     >
-      {/* Modern Header with Gradient */}
+      {/* Modern Header with Gradient - Using context-based gradient */}
       <Box 
-        bgGradient={useColorModeValue(
-          'linear(to-r, brand.400, brand.600)', 
-          'linear(to-r, brand.600, brand.800)'
-        )}
+        bgGradient={headerGradient} // ✅ Using context-based value
         py={4}
         boxShadow="sm"
       >
@@ -348,19 +297,19 @@ export const AppContent: React.FC<AppContentProps> = ({ API_URL }) => {
                 BETA
               </Badge>
             </Flex>
-            
+            {/* ✅ Fixed: Tooltip and IconButton using ThemeContext state */}
             <Tooltip 
-              label={darkMode ? "Switch to light mode" : "Switch to dark mode"}
+              label={themeLabel}
               placement="bottom"
             >
               <IconButton
-                onClick={toggleDarkMode}
-                aria-label={darkMode ? "Switch to light mode" : "Switch to dark mode"}
-                icon={darkMode ? <SunIcon /> : <MoonIcon />}
+                onClick={toggleTheme}
+                aria-label={themeLabel}
+                icon={themeIcon}
                 variant="ghost"
                 color="white"
                 _hover={{
-                  bg: useColorModeValue('brand.500', 'brand.700'),
+                  bg: iconButtonHoverBg, // ✅ Using context-based value
                   transform: 'scale(1.1)',
                 }}
                 transition="all 0.2s"
@@ -369,7 +318,7 @@ export const AppContent: React.FC<AppContentProps> = ({ API_URL }) => {
           </Flex>
         </Container>
       </Box>
-
+      
       {/* Search Section with Modern Styling */}
       <Container maxW="container.xl" py={6}>
         <Center>
@@ -382,21 +331,17 @@ export const AppContent: React.FC<AppContentProps> = ({ API_URL }) => {
             />
           </Box>
         </Center>
-
+        
         {/* Main Content */}
         <Box>
           <CityHeader data={data} />
-          
           <MetricsGrid data={data} />
-          
           <IQVBreakdown data={data} />
-
           <ForecastSection 
             forecast={forecast} 
             mlPrediction={mlPrediction}
           />
           <WeatherRadarMap data={data} />
-
           <CityComparison
             comparisonCity={comparisonCity}
             setComparisonCity={setComparisonCity}
@@ -408,7 +353,6 @@ export const AppContent: React.FC<AppContentProps> = ({ API_URL }) => {
             setShowComparisonSuggestions={setShowComparisonSuggestions}
             comparisonSearchRef={comparisonSearchRef}
           />
-
           {/* <CityMap data={data} /> */}
         </Box>
       </Container>
