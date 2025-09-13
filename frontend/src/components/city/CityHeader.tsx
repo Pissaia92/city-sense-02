@@ -1,175 +1,117 @@
+// frontend/src/components/city/CityHeader.tsx
 import React from 'react';
-import { 
-  Box, 
-  Heading, 
-  Text, 
-  Flex, 
-  Center,
-  useColorModeValue,
-  Icon
-} from '@chakra-ui/react';
-import { FiMapPin, FiClock } from 'react-icons/fi';
-
-interface IQVData {
-  city: string;
-  country: string;
-  temperature: number;
-  humidity: number;
-  wind_speed: number;
-  iqv_components: {
-    temperature: number;
-    humidity: number;
-    wind: number;
-    overall: number;
-  };
-  timestamp: string;
-  latitude: number;
-  longitude: number;
-  weather?: {
-    description: string;
-  };
-  description?: string;
-}
+import { Box, Flex, Text, Icon, useColorModeValue } from '@chakra-ui/react';
+import { FaMapMarkerAlt, FaClock } from 'react-icons/fa';
+import { IQVData } from '../../types'; // Importa o tipo IQVData
 
 interface CityHeaderProps {
-  data: IQVData; // Adicionando a prop data
+  data: IQVData;
 }
 
 export const CityHeader: React.FC<CityHeaderProps> = ({ data }) => {
-  // Helper function to get weather icon based on description
-  const getWeatherIcon = (description: string) => {
-    // Check if description exists before calling toLowerCase
-    if (!description) return '🌤️';
-    
-    const desc = description.toLowerCase();
-    if (desc.includes('rain') || desc.includes('storm') || desc.includes('chuva')) {
-      return '⛈️';
-    }
-    if (desc.includes('cloud') || desc.includes('nublado')) {
-      return '☁️';
-    }
-    if (desc.includes('sun') || desc.includes('clear') || desc.includes('sol')) {
-      return '☀️';
-    }
-    if (desc.includes('snow') || desc.includes('neve')) {
-      return '❄️';
-    }
-    return '🌤️';
-  };
+  // Cores que reagem ao modo claro/escuro
+  const bgColor = useColorModeValue('gray.100', 'gray.700'); // Fundo mais sutil
+  const textColor = useColorModeValue('gray.800', 'white'); // Texto principal
+  const secondaryTextColor = useColorModeValue('gray.600', 'gray.300'); // Texto secundário
+  const borderColor = useColorModeValue('gray.300', 'gray.600'); // Borda
 
-  // Helper function to get weather color
-  const getWeatherColor = (description: string) => {
-    if (!description) return 'blue.400';
+  // Processa a descrição do clima
+  const weatherDescription = data.weather?.description || '';
+  let conditionText = 'Unknown';
+  
+  if (weatherDescription) {
+    // Capitaliza a primeira letra
+    conditionText = weatherDescription.charAt(0).toUpperCase() + weatherDescription.slice(1);
     
-    const desc = description.toLowerCase();
-    if (desc.includes('rain') || desc.includes('storm') || desc.includes('chuva')) {
-      return 'blue.400';
+    // Mapeia descrições específicas para textos mais amigáveis (opcional)
+    switch (weatherDescription.toLowerCase()) {
+      case 'broken clouds':
+        conditionText = 'Partly Cloudy';
+        break;
+      case 'few clouds':
+        conditionText = 'Mostly Sunny';
+        break;
+      case 'clear sky':
+        conditionText = 'Clear Sky';
+        break;
+      case 'scattered clouds':
+        conditionText = 'Scattered Clouds';
+        break;
+      case 'shower rain':
+        conditionText = 'Shower Rain';
+        break;
+      case 'rain':
+        conditionText = 'Rain';
+        break;
+      case 'thunderstorm':
+        conditionText = 'Thunderstorm';
+        break;
+      case 'snow':
+        conditionText = 'Snow';
+        break;
+      case 'mist':
+        conditionText = 'Mist';
+        break;
+      // Adicione mais casos conforme necessário
     }
-    if (desc.includes('cloud') || desc.includes('nublado')) {
-      return 'gray.400';
-    }
-    if (desc.includes('sun') || desc.includes('clear') || desc.includes('sol')) {
-      return 'yellow.400';
-    }
-    if (desc.includes('snow') || desc.includes('neve')) {
-      return 'blue.100';
-    }
-    return 'blue.400';
-  };
-
-  // Verificar se data existe antes de acessar propriedades
-  if (!data) {
-    return (
-      <Center py={8}>
-        <Box 
-          textAlign="center" 
-          p={8} 
-          bg={useColorModeValue('white', 'gray.800')}
-          borderRadius="xl" 
-          boxShadow="lg"
-          width="100%"
-        >
-          <Heading size="lg" color={useColorModeValue('gray.700', 'white')}>
-            Loading city data...
-          </Heading>
-        </Box>
-      </Center>
-    );
   }
 
   return (
     <Box 
-      textAlign="center" 
-      p={8} 
-      bg={useColorModeValue('white', 'gray.800')}
-      borderRadius="xl" 
-      mb={8}
-      boxShadow="lg"
-      border="1px"
-      borderColor={useColorModeValue('gray.200', 'gray.700')}
-      transition="all 0.3s"
-      _hover={{
-        transform: 'translateY(-2px)',
-        boxShadow: 'xl',
-      }}
+      bg={bgColor} 
+      borderRadius="lg" 
+      p={{ base: 3, sm: 4 }} // Padding responsivo
+      shadow="md"
+      mb={6}
+      maxW="xl"
+      mx="auto"
+      borderWidth="1px"
+      borderColor={borderColor}
     >
-      <Flex direction="column" align="center" justify="center" gap={6}>
+      <Flex justify="center" align="center" direction="column">
         {/* Weather Icon and Temperature */}
-        <Flex align="center" gap={4}>
-          <Box 
-            fontSize="5xl" 
-            color={getWeatherColor(data.weather?.description || data.description || '')}
-            transition="all 0.3s"
-            _hover={{
-              transform: 'scale(1.1)',
-            }}
-          >
-            {getWeatherIcon(data.weather?.description || data.description || '')}
-          </Box>
-          
-          <Box>
-            <Box 
-              fontSize="4xl" 
-              fontWeight="bold" 
-              color={useColorModeValue('gray.800', 'white')}
-            >
-              {data.temperature !== undefined ? `${data.temperature.toFixed(1)}°C` : 'N/A'}
-            </Box>
-            <Text 
-              fontSize="lg" 
-              color={useColorModeValue('gray.600', 'gray.400')}
-            >
-              {data.weather?.description || data.description || 'Loading weather...'}
-            </Text>
-          </Box>
+        <Flex align="center" gap={2} mb={2}>
+          <Icon as={FaMapMarkerAlt} color={textColor} boxSize={5} />
+          {/* ✅ Corrigido: Nome da cidade dinâmico */}
+          <Text fontSize="sm" color={secondaryTextColor}>
+            {data.city}, {data.country}
+          </Text>
         </Flex>
         
-        {/* City Information */}
-        <Box>
-          <Heading 
-            size="lg" 
-            mb={3} 
-            color={useColorModeValue('gray.800', 'white')}
-          >
-            {data.city || 'Loading City'}, {data.country || 'Loading Country'}
-          </Heading>
-          
-          <Flex justify="center" gap={4} color={useColorModeValue('gray.600', 'gray.400')}>
-            <Flex align="center" gap={1}>
-              <Icon as={FiMapPin} />
-              <Text fontSize="sm">
-                {data.latitude?.toFixed(4) || '0'}, {data.longitude?.toFixed(4) || '0'}
-              </Text>
-            </Flex>
-            
-            <Flex align="center" gap={1}>
-              <Icon as={FiClock} />
-              <Text fontSize="sm">
-                Updated: {new Date(data.timestamp).toLocaleString()}
-              </Text>
-            </Flex>
+        <Flex align="center" gap={3} mb={1}>
+          {/* ✅ Corrigido: Temperatura principal */}
+          <Text fontSize={{ base: '2xl', md: '3xl' }} fontWeight="bold" color={textColor}>
+            {data.temperature}°C
+          </Text>
+          {/* ✅ Corrigido: Condição do tempo sem "Unknown" quando há dados */}
+          {weatherDescription && (
+            <Text fontSize="sm" color={secondaryTextColor}>
+              {conditionText}
+            </Text>
+          )}
+        </Flex>
+
+        {/* Location and Timestamp */}
+        <Flex 
+          justify="center" 
+          align="center" 
+          gap={{ base: 3, sm: 4 }} 
+          mt={2} 
+          fontSize="xs" 
+          color={secondaryTextColor}
+          flexWrap="wrap" // Permite quebra de linha em telas pequenas
+        >
+          <Flex align="center" gap={1}>
+            <Icon as={FaMapMarkerAlt} boxSize={3} />
+            <Text>
+              {data.latitude.toFixed(4)}, {data.longitude.toFixed(4)}
+            </Text>
           </Flex>
-        </Box>
+          <Flex align="center" gap={1}>
+            <Icon as={FaClock} boxSize={3} />
+            <Text>Updated: {new Date(data.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</Text>
+          </Flex>
+        </Flex>
       </Flex>
     </Box>
   );

@@ -262,100 +262,112 @@ export const AppContent: React.FC<AppContentProps> = ({ API_URL }) => {
   const themeLabel = isDarkMode ? "Switch to light mode" : "Switch to dark mode";
 
   return (
+  <Box 
+    minH="100vh" 
+    bg={bgColor}
+    color={textColor}
+  >
+    {/* Modern Header with Gradient */}
     <Box 
-      minH="100vh" 
-      bg={bgColor}
-      color={textColor}
+      bgGradient={useColorModeValue(
+        'linear(to-r, brand.400, brand.600)', 
+        'linear(to-r, brand.600, brand.800)'
+      )}
+      py={4}
+      boxShadow="sm"
     >
-      {/* Modern Header with Gradient - Using context-based gradient */}
-      <Box 
-        bgGradient={headerGradient} // ✅ Using context-based value
-        py={4}
-        boxShadow="sm"
-      >
-        <Container maxW="container.xl">
-          <Flex 
-            justify="space-between" 
-            align="center"
-            py={2}
-          >
-            <Flex align="center" gap={3}>
-              <Box 
-                fontSize="2xl" 
-                fontWeight="bold"
-                color="white"
-              >
-                🌍 City Sense
-              </Box>
-              <Badge 
-                colorScheme="green" 
-                variant="solid"
-                fontSize="xs"
-                borderRadius="full"
-                px={2}
-              >
-                BETA
-              </Badge>
-            </Flex>
-            {/* ✅ Fixed: Tooltip and IconButton using ThemeContext state */}
-            <Tooltip 
-              label={themeLabel}
-              placement="bottom"
+      <Container maxW="container.xl">
+        <Flex 
+          justify="space-between" 
+          align="center"
+          py={2}
+        >
+          <Flex align="center" gap={3}>
+            <Box 
+              fontSize="2xl" 
+              fontWeight="bold"
+              color="white"
             >
-              <IconButton
-                onClick={toggleTheme}
-                aria-label={themeLabel}
-                icon={themeIcon}
-                variant="ghost"
-                color="white"
-                _hover={{
-                  bg: iconButtonHoverBg, // ✅ Using context-based value
-                  transform: 'scale(1.1)',
-                }}
-                transition="all 0.2s"
-              />
-            </Tooltip>
+              🌍 City Sense
+            </Box>
+            <Badge 
+              colorScheme="green" 
+              variant="solid"
+              fontSize="xs"
+              borderRadius="full"
+              px={2}
+            >
+              BETA
+            </Badge>
           </Flex>
-        </Container>
-      </Box>
-      
-      {/* Search Section with Modern Styling */}
-      <Container maxW="container.xl" py={6}>
-        <Center>
-          <Box w="100%" maxW="xl">
-            <SearchBar 
-              onSearch={fetchData}
-              initialCity={inputCity}
-              setInputCity={setInputCity}
-              fetchSuggestions={fetchSuggestions}
+          {/* ✅ Corrigido: Tooltip e IconButton usando o estado do ThemeContext */}
+          <Tooltip 
+            label={themeLabel}
+            placement="bottom"
+          >
+            <IconButton
+              onClick={toggleTheme}
+              aria-label={themeLabel}
+              icon={themeIcon}
+              variant="ghost"
+              color="white"
+              _hover={{
+                bg: useColorModeValue('brand.500', 'brand.700'),
+                transform: 'scale(1.1)',
+              }}
+              transition="all 0.2s"
             />
-          </Box>
-        </Center>
-        
-        {/* Main Content */}
-        <Box>
-          <CityHeader data={data} />
-          <MetricsGrid data={data} />
-          <IQVBreakdown data={data} />
-          <ForecastSection 
-            forecast={forecast} 
-            mlPrediction={mlPrediction}
-          />
-          <WeatherRadarMap data={data} />
-          <CityComparison
-            comparisonCity={comparisonCity}
-            setComparisonCity={setComparisonCity}
-            comparisonData={comparisonData}
-            comparisonForecast={comparisonForecast}
-            fetchComparisonData={fetchComparisonData}
-            fetchSuggestions={fetchSuggestions}
-            showComparisonSuggestions={showComparisonSuggestions}
-            setShowComparisonSuggestions={setShowComparisonSuggestions}
-            comparisonSearchRef={comparisonSearchRef}
-          />
-          {/* <CityMap data={data} /> */}
-        </Box>
+          </Tooltip>
+        </Flex>
       </Container>
     </Box>
-  );
-};
+    
+    {/* Search Section with Modern Styling */}
+    <Container maxW="container.xl" py={6}>
+      <Center>
+        <Box w="100%" maxW="xl">
+          <SearchBar 
+            onSearch={fetchData}
+            initialCity={inputCity}
+            setInputCity={setInputCity}
+            fetchSuggestions={fetchSuggestions}
+          />
+        </Box>
+      </Center>
+      
+      {/* Main Content */}
+      <Box>
+        {/* City Header - Mais compacto */}
+        <CityHeader data={data} />
+
+        {/* Metrics Grid - Manter como está */}
+        <MetricsGrid data={data} />
+        
+        {/* IQV Breakdown - Manter como está */}
+        <IQVBreakdown data={data} />
+        
+        {/* Forecast Section - Manter como está */}
+        <ForecastSection 
+          forecast={forecast} 
+          mlPrediction={mlPrediction}
+        />
+        
+        {/* Weather Radar Map - Manter como está */}
+        <WeatherRadarMap data={data} />
+        
+        {/* City Comparison - Manter como está */}
+        <CityComparison
+          comparisonCity={comparisonCity}
+          setComparisonCity={setComparisonCity}
+          comparisonData={comparisonData}
+          comparisonForecast={comparisonForecast}
+          fetchComparisonData={fetchComparisonData}
+          fetchSuggestions={fetchSuggestions}
+          showComparisonSuggestions={showComparisonSuggestions}
+          setShowComparisonSuggestions={setShowComparisonSuggestions}
+          comparisonSearchRef={comparisonSearchRef}
+        />
+      </Box>
+    </Container>
+  </Box>
+);}
