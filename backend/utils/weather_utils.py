@@ -1,4 +1,3 @@
-# backend/utils/weather_utils.py
 import httpx
 import os
 import sys
@@ -8,7 +7,7 @@ from typing import Dict, Any, List, Optional
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from core.config import settings
 
-# URL base da WeatherAPI
+# Base url WeatherAPI
 WEATHER_API_BASE_URL = "http://api.weatherapi.com/v1"
 
 async def get_current_weather_and_forecast(city: str) -> Dict[str, Any]:
@@ -18,26 +17,26 @@ async def get_current_weather_and_forecast(city: str) -> Dict[str, Any]:
             raise RuntimeError("WEATHERAPI_KEY is required")
 
         async with httpx.AsyncClient() as client:
-            # Endpoint 'forecast' da WeatherAPI fornece dados atuais e de previsão
+            # Endpoint WeatherAPI 
             url = f"{WEATHER_API_BASE_URL}/forecast.json"
             params = {
                 "key": WEATHERAPI_KEY,
                 "q": city,
-                "days": 6, # Pega 6 dias para ter certeza de 5 dias completos
-                "aqi": "no", # Se não precisar de qualidade do ar
-                "alerts": "no" # Se não precisar de alertas
+                "days": 6, 
+                "aqi": "yes", # air quality
+                "alerts": "no" # alerts
             }
 
             response = await client.get(url, params=params)
             if response.status_code != 200:
-                # Tenta extrair mensagem de erro da API
+                # error try
                 error_msg = f"Failed to fetch data from WeatherAPI. Status: {response.status_code}"
                 try:
                     error_data = response.json()
                     if "error" in error_data:
                         error_msg += f". API Error: {error_data['error'].get('message', 'Unknown error')}"
                 except:
-                    pass # Ignora se não conseguir parsear o JSON de erro
+                    pass # Ignore if not parse json
                 raise HTTPException(status_code=500, detail=error_msg)
 
             data = response.json()
@@ -67,7 +66,7 @@ def process_weatherapi_data(raw_data: Dict[str, Any]) -> Dict[str, Any]:
         temperature = current["temp_c"]
         humidity = current["humidity"]
         wind_speed_mph = current["wind_mph"]
-        # Converter wind speed de mph para m/s (se necessário, o frontend pode converter)
+        # metrics convertion
         wind_speed = wind_speed_mph * 0.44704 # 1 mph = 0.44704 m/s
         weather_desc = current["condition"]["text"]
 

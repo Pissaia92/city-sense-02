@@ -9,6 +9,11 @@ export interface IQVData {
     humidity: number;
     wind: number;
     overall: number;
+    uv_index?: number;
+    aqi?: {
+      us_epa_index?: number;
+      pm2_5?: number;
+    };
   };
   timestamp: string;
   latitude: number;

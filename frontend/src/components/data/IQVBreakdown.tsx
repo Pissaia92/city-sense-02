@@ -7,172 +7,131 @@ import {
   Card,
   CardBody,
   Heading,
-  Progress,
   SimpleGrid,
-  Stat,
-  StatLabel,
-  StatNumber,
-  StatHelpText,
   Icon
 } from '@chakra-ui/react';
-import { FiThermometer, FiDroplet, FiWind } from 'react-icons/fi';
 
-interface IQVData {
-  city: string;
-  country: string;
-  temperature: number;
-  humidity: number;
-  wind_speed: number;
-  iqv_components: {
-    temperature: number;
-    humidity: number;
-    wind: number;
-    overall: number;
-  };
-  timestamp: string;
-  latitude: number;
-  longitude: number;
-  weather?: {
-    description: string;
-  };
-  description?: string;
-}
+import { FaThermometer, FaTint as FaDroplet, FaWind } from 'react-icons/fa';
+import { IQVData } from '../../types'; // Imports IQVData type
 
 interface IQVBreakdownProps {
-  data: IQVData; // Adicionando a prop data
+  data: IQVData;
 }
 
 export const IQVBreakdown: React.FC<IQVBreakdownProps> = ({ data }) => {
-  const bgColor = useColorModeValue('white', 'gray.800');
-  const borderColor = useColorModeValue('gray.200', 'gray.700');
+  // Colors that react to light/dark mode
   const textColor = useColorModeValue('gray.800', 'white');
-  const subtitleColor = useColorModeValue('gray.600', 'gray.400');
-  
-  // Função para obter cor do componente IQV
-  const getComponentColor = (value: number) => {
-    if (value >= 80) return 'green.400';
-    if (value >= 60) return 'yellow.400';
-    if (value >= 40) return 'orange.400';
-    return 'red.400';
-  };
+  const secondaryTextColor = useColorModeValue('gray.600', 'gray.300');
 
-  if (!data?.iqv_components) {
-    return (
-      <Card 
-        bg={bgColor}
-        border="1px"
-        borderColor={borderColor}
-        boxShadow="lg"
-        mb={8}
-      >
-        <CardBody>
-          <Heading size="md" mb={4} color={textColor}>IQV Breakdown</Heading>
-          <Text color={subtitleColor}>Loading components...</Text>
-        </CardBody>
-      </Card>
-    );
-  }
+  // Calculates components based on 0-10 scale
+  const tempComfort = Math.max(0, Math.min(10, (30 - Math.abs(data.temperature - 22)) / 3)); 
+  const humidityLevel = Math.max(0, Math.min(10, (100 - data.humidity) / 5)); 
+  const windConditions = Math.max(0, Math.min(10, (15 - data.wind_speed) / 1.5)); 
 
-  const components = [
-    {
-      title: "Temperature Comfort",
-      value: data.iqv_components.temperature?.toFixed(1) || '0.0',
-      color: getComponentColor(data.iqv_components.temperature || 0),
-      icon: FiThermometer,
-      description: "Based on ideal temperature range (20-25°C)"
-    },
-    {
-      title: "Humidity Level",
-      value: data.iqv_components.humidity?.toFixed(1) || '0.0',
-      color: getComponentColor(data.iqv_components.humidity || 0),
-      icon: FiDroplet,
-      description: "Optimal humidity between 40-60%"
-    },
-    {
-      title: "Wind Conditions",
-      value: data.iqv_components.wind?.toFixed(1) || '0.0',
-      color: getComponentColor(data.iqv_components.wind || 0),
-      icon: FiWind,
-      description: "Lower wind speeds are more comfortable"
-    }
-  ];
+  // Calculates overall score (average of components)
+  const overallIQV = (tempComfort + humidityLevel + windConditions) / 3;
 
   return (
     <Card 
-      bg={bgColor}
-      border="1px"
-      borderColor={borderColor}
-      boxShadow="lg"
-      mb={8}
-      transition="all 0.3s"
-      _hover={{ transform: 'translateY(-2px)', boxShadow: 'xl' }}
+      bg={useColorModeValue('white', 'gray.800')}
+      borderRadius="lg"
+      shadow="md"
+      mb={6}
     >
       <CardBody>
-        <Heading size="md" mb={6} color={textColor} textAlign="center">
+        <Heading size="md" textAlign="center" mb={4} color={textColor}>
           IQV Component Analysis
         </Heading>
-        
-        <SimpleGrid columns={{ base: 1, md: 3 }} spacing={6}>
-          {components.map((component, index) => (
-            <Card 
-              key={index} 
-              bg={useColorModeValue('gray.50', 'gray.700')}
-              border="1px"
-              borderColor={borderColor}
-              transition="all 0.2s"
-              _hover={{ bg: useColorModeValue('gray.100', 'gray.600') }}
-            >
-              <CardBody>
-                <Flex align="center" mb={3}>
-                  <Icon as={component.icon} color={component.color} boxSize={5} mr={2} />
-                  <Text fontWeight="bold" color={textColor}>{component.title}</Text>
-                </Flex>
-                
-                <Stat>
-                  <StatNumber 
-                    color={component.color} 
-                    fontSize="2xl"
-                    fontWeight="bold"
-                  >
-                    {component.value}
-                  </StatNumber>
-                  <StatHelpText color={subtitleColor} fontSize="sm">
-                    {component.description}
-                  </StatHelpText>
-                </Stat>
-                
-                <Progress 
-                  value={parseFloat(component.value)} 
-                  size="sm" 
-                  colorScheme={component.color.split('.')[0]} 
-                  borderRadius="full"
-                  mt={2}
-                />
-              </CardBody>
-            </Card>
-          ))}
+        <SimpleGrid columns={{ base: 1, md: 3 }} spacing={4}>
+          {/* Temperature Comfort */}
+          <Card p={4} borderRadius="lg" bg={useColorModeValue('gray.50', 'gray.700')}>
+            <Flex align="center" gap={2} mb={2}>
+              <Icon as={FaThermometer} color="red.400" boxSize={5} />
+              <Text fontWeight="bold" color={textColor}>
+                Temperature Comfort
+              </Text>
+            </Flex>
+            <Text fontSize="2xl" fontWeight="bold" color="red.500" mb={1}>
+              {tempComfort.toFixed(1)}
+            </Text>
+            <Text fontSize="sm" color={secondaryTextColor} mb={3}>
+              Based on ideal temperature range (20-25°C)
+            </Text>
+            <Box w="100%" h="8px" borderRadius="full" bg={useColorModeValue('gray.200', 'gray.600')} overflow="hidden">
+              <Box 
+                h="100%" 
+                w={`${tempComfort * 10}%`} 
+                borderRadius="full"
+                bg="red.500"
+              />
+            </Box>
+          </Card>
+
+          {/* Humidity Level */}
+          <Card p={4} borderRadius="lg" bg={useColorModeValue('gray.50', 'gray.700')}>
+            <Flex align="center" gap={2} mb={2}>
+              <Icon as={FaDroplet} color="blue.400" boxSize={5} />
+              <Text fontWeight="bold" color={textColor}>
+                Humidity Level
+              </Text>
+            </Flex>
+            <Text fontSize="2xl" fontWeight="bold" color="blue.500" mb={1}>
+              {humidityLevel.toFixed(1)}
+            </Text>
+            <Text fontSize="sm" color={secondaryTextColor} mb={3}>
+              Optimal humidity between 40-60%
+            </Text>
+            <Box w="100%" h="8px" borderRadius="full" bg={useColorModeValue('gray.200', 'gray.600')} overflow="hidden">
+              <Box 
+                h="100%" 
+                w={`${humidityLevel * 10}%`} 
+                borderRadius="full"
+                bg="blue.500"
+              />
+            </Box>
+          </Card>
+
+          {/* Wind Conditions */}
+          <Card p={4} borderRadius="lg" bg={useColorModeValue('gray.50', 'gray.700')}>
+            <Flex align="center" gap={2} mb={2}>
+              <Icon as={FaWind} color="purple.400" boxSize={5} />
+              <Text fontWeight="bold" color={textColor}>
+                Wind Conditions
+              </Text>
+            </Flex>
+            <Text fontSize="2xl" fontWeight="bold" color="purple.500" mb={1}>
+              {windConditions.toFixed(1)}
+            </Text>
+            <Text fontSize="sm" color={secondaryTextColor} mb={3}>
+              Lower wind speeds are more comfortable
+            </Text>
+            <Box w="100%" h="8px" borderRadius="full" bg={useColorModeValue('gray.200', 'gray.600')} overflow="hidden">
+              <Box 
+                h="100%" 
+                w={`${windConditions * 10}%`} 
+                borderRadius="full"
+                bg="purple.500"
+              />
+            </Box>
+          </Card>
         </SimpleGrid>
-        
-        <Box 
+
+        {/* Overall IQV Score */}
+        <Card 
           mt={6} 
           p={4} 
+          borderRadius="lg" 
           bg={useColorModeValue('blue.50', 'blue.900')}
-          borderRadius="lg"
-          border="1px"
-          borderColor={useColorModeValue('blue.200', 'blue.700')}
         >
           <Flex justify="space-between" align="center">
             <Text fontWeight="bold" color={useColorModeValue('blue.800', 'blue.200')}>
               Overall IQV Score
             </Text>
-            <Heading 
-              size="lg" 
-              color={getComponentColor(data.iqv_components.overall || 0)}
-            >
-              {data.iqv_components.overall?.toFixed(1) || '0.0'}
-            </Heading>
+            <Text fontSize="2xl" fontWeight="bold" color={useColorModeValue('blue.800', 'blue.200')}>
+              {overallIQV.toFixed(1)}
+            </Text>
           </Flex>
-        </Box>
+        </Card>
       </CardBody>
     </Card>
   );
