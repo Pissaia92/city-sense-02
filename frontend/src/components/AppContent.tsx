@@ -1,15 +1,14 @@
+// frontend/src/components/AppContent.tsx
 import React, { useState, useEffect, useRef } from 'react';
 import { useTheme } from '../context/ThemeContext';
 import { WeatherRadarMap } from '../components/data/WeatherRadarMap';
-// Icons
-import { FaMapMarkerAlt, FaClock, FaUsers, FaChartLine } from 'react-icons/fa';
 // Chakra UI Components
 import { 
   Box, 
   Center, 
   Container,
   Flex,
-  Text, 
+  Text,
   Icon,
   useColorModeValue,
   IconButton,
@@ -18,18 +17,24 @@ import {
 } from '@chakra-ui/react';
 // Icons
 import { SunIcon, MoonIcon } from '@chakra-ui/icons';
+import { 
+  FiSun, 
+  FiCloud, 
+  FiCloudRain,  
+  FiCloudSnow 
+} from 'react-icons/fi';
+import { FaMapMarkerAlt, FaClock, FaUsers, } from 'react-icons/fa';
 // UI Components
 import { LoadingState, ErrorState } from './ui/States';
 import { InitialState } from './ui/InitialState';
 import { SearchBar } from './search/SearchBar';
 // City Components
-// import { CityHeader } from './city/CityHeader'; // Comented for now
 import { CityComparison } from './city/CityComparison';
 // Data Components
 import { MetricsGrid } from './data/MetricsGrid';
 import { IQVBreakdown } from './data/IQVBreakdown';
 import { ForecastSection } from './data/ForecastSection';
-// Types
+// Types - Import from the correct location
 import { IQVData, ForecastPoint } from '../types'; 
 
 interface AppContentProps {
@@ -37,7 +42,9 @@ interface AppContentProps {
 }
 
 export const AppContent: React.FC<AppContentProps> = ({ API_URL }) => {
+  // Theme context
   const { theme, toggleTheme } = useTheme();
+  // State management
   const [data, setData] = useState<IQVData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -49,7 +56,7 @@ export const AppContent: React.FC<AppContentProps> = ({ API_URL }) => {
   const [comparisonForecast, setComparisonForecast] = useState<ForecastPoint[] | null>(null);
   const [showComparisonSuggestions, setShowComparisonSuggestions] = useState(false);
   const [searchTried, setSearchTried] = useState(false);
-  const [mlPrediction, setMlPrediction] = useState<any>(null);
+  const [, setMlPrediction] = useState<any>(null);
   const searchRef = useRef<HTMLDivElement>(null);
   const comparisonSearchRef = useRef<HTMLDivElement>(null);
 
@@ -57,7 +64,7 @@ export const AppContent: React.FC<AppContentProps> = ({ API_URL }) => {
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
-        // setShowSuggestions(false); // Removed as it's not used
+        // setShowSuggestions(false); // Removido pois não está sendo usado
       }
       if (comparisonSearchRef.current && !comparisonSearchRef.current.contains(event.target as Node)) {
         setShowComparisonSuggestions(false);
@@ -238,15 +245,11 @@ export const AppContent: React.FC<AppContentProps> = ({ API_URL }) => {
   };
 
   // Theme colors - Still using useColorModeValue for base elements
-  // But for specific overrides based on our context, we'll use conditionals
   const bgColor = useColorModeValue('gray.50', 'gray.900');
   const textColor = useColorModeValue('gray.800', 'white');
+  
   // Determine theme-specific values based on our ThemeContext
   const isDarkMode = theme === 'dark';
-  const headerGradient = isDarkMode 
-    ? 'linear(to-r, brand.600, brand.800)' 
-    : 'linear(to-r, brand.400, brand.600)';
-  const iconButtonHoverBg = isDarkMode ? 'brand.700' : 'brand.500';
 
   if (loading && !data) {
     return <LoadingState />;
@@ -261,6 +264,89 @@ export const AppContent: React.FC<AppContentProps> = ({ API_URL }) => {
   // Determine icon and label based on our ThemeContext state
   const themeIcon = isDarkMode ? <SunIcon /> : <MoonIcon />;
   const themeLabel = isDarkMode ? "Switch to light mode" : "Switch to dark mode";
+
+  // Process weather description
+  const weatherDescription = data.weather?.description || '';
+  let conditionText = 'Unknown';
+  if (weatherDescription) {
+    conditionText = weatherDescription.charAt(0).toUpperCase() + weatherDescription.slice(1);
+    switch (weatherDescription.toLowerCase()) {
+      case 'broken clouds': conditionText = 'Partly Cloudy'; break;
+      case 'few clouds': conditionText = 'Mostly Sunny'; break;
+      case 'clear sky': conditionText = 'Clear Sky'; break;
+      case 'scattered clouds': conditionText = 'Scattered Clouds'; break;
+      case 'shower rain': conditionText = 'Shower Rain'; break;
+      case 'rain': conditionText = 'Rain'; break;
+      case 'thunderstorm': conditionText = 'Thunderstorm'; break;
+      case 'snow': conditionText = 'Snow'; break;
+      case 'mist': conditionText = 'Mist'; break;
+      // Adicione mais conforme necessário
+    }
+  }
+
+  // Formata a população
+  const formatPopulation = (pop?: number) => {
+    if (pop === undefined || pop === null) return 'N/A';
+    if (pop >= 1000000) {
+      return `${(pop / 1000000).toFixed(1)}M`;
+    } else if (pop >= 1000) {
+      return `${(pop / 1000).toFixed(1)}k`;
+    }
+    return pop.toString();
+  };
+
+  // Formata a hora local
+  const formatLocalTime = () => {
+    if (!data.timestamp) return 'N/A';
+    const date = new Date(data.timestamp);
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
+
+  // --- Funções auxiliares para ícones e cores do clima ---
+  const getWeatherIcon = (description: string) => {
+    if (!description) return FiSun;
+    const desc = description.toLowerCase();
+    if (desc.includes('rain') || desc.includes('storm') || desc.includes('chuva')) {
+      return FiCloudRain;
+    }
+    if (desc.includes('cloud') || desc.includes('nublado')) {
+      return FiCloud;
+    }
+    if (desc.includes('sun') || desc.includes('clear') || desc.includes('sol')) {
+      return FiSun;
+    }
+    if (desc.includes('snow') || desc.includes('neve')) {
+      return FiCloudSnow;
+    }
+    if (desc.includes('mist') || desc.includes('névoa')) {
+      return FiCloud;
+    }
+    return FiSun; // Ícone padrão
+  };
+
+  const getWeatherColor = (description: string) => {
+    if (!description) return 'yellow.400';
+    const desc = description.toLowerCase();
+    if (desc.includes('rain') || desc.includes('storm') || desc.includes('chuva')) {
+      return 'blue.400';
+    }
+    if (desc.includes('cloud') || desc.includes('nublado')) {
+      return 'gray.400';
+    }
+    if (desc.includes('sun') || desc.includes('clear') || desc.includes('sol')) {
+      return 'yellow.400';
+    }
+    if (desc.includes('snow') || desc.includes('neve')) {
+      return 'blue.200';
+    }
+    return 'yellow.400'; // Cor padrão
+  };
+
+  // --- Funções auxiliares para UV ---
+
+
+  // --- Funções auxiliares para AQI ---
+
 
   return (
     <Box 
@@ -338,7 +424,7 @@ export const AppContent: React.FC<AppContentProps> = ({ API_URL }) => {
         
         {/* Main Content */}
         <Box>
-          {/* ✅ NOVA SEÇÃO: Informações Consolidadas da Cidade */}
+          {/* ✅ NOVA SEÇÃO: Informações Consolidadas da Cidade (Hero Box) */}
           <Box
             bg={useColorModeValue('gray.100', 'gray.700')}
             borderRadius="lg"
@@ -354,81 +440,100 @@ export const AppContent: React.FC<AppContentProps> = ({ API_URL }) => {
               {/* Linha 1: Localização */}
               <Flex align="center" gap={2} mb={2}>
                 <Icon as={FaMapMarkerAlt} color={useColorModeValue('gray.800', 'white')} boxSize={4} />
-                <Text fontSize="sm" fontWeight="bold" color={useColorModeValue('gray.800', 'white')}>
-                  {data.city}{data.state ? `, ${data.state}` : ''}, {data.country}
+                <Text fontSize="lg" fontWeight="bold" color={useColorModeValue('gray.800', 'white')}>
+                  {data.city}, {data.country}
                 </Text>
               </Flex>
 
-              {/* Linha 2: Temperatura e Condição */}
-              <Flex align="center" gap={3} mb={2}>
-                <Text fontSize={{ base: '2xl', md: '3xl' }} fontWeight="bold" color={useColorModeValue('gray.800', 'white')}>
-                  {data.temperature.toFixed(1)}°C
-                </Text>
-                {data.weather?.description && (
-                  <Text fontSize="sm" color={useColorModeValue('gray.600', 'gray.300')}>
-                    {data.weather.description.charAt(0).toUpperCase() + data.weather.description.slice(1)}
+              {/* Linha 2: Ícone de clima + descrição + sensação térmica */}
+              <Flex align="center" gap={3} mb={3}>
+                <Icon 
+                  as={getWeatherIcon(weatherDescription)} 
+                  color={getWeatherColor(weatherDescription)} 
+                  boxSize={{ base: 8, md: 10 }}
+                />
+                <Flex direction="column" align="start">
+                  <Text fontSize="md" fontWeight="semibold" color={useColorModeValue('gray.800', 'white')}>
+                    {conditionText}
                   </Text>
-                )}
+                  {/* Sensação térmica - verificando se existe no objeto data */}
+                  {/* NOTA: feelslike_c não está no tipo IQVData padrão. Se estiver disponível via backend, descomente abaixo */}
+                  {/* {data.feelslike_c !== undefined && (
+                    <Text fontSize="sm" color={useColorModeValue('gray.600', 'gray.300')}>
+                      Sensação: {data.feelslike_c.toFixed(1)}°C
+                    </Text>
+                  )} */}
+                </Flex>
               </Flex>
 
-              {/* Linha 3: População e HDI */}
-              <Flex justify="center" align="center" wrap="wrap" gap={4} mb={2} fontSize="sm">
+              {/* Linha 3: UV e AQI como badges */}
+              <Flex justify="center" gap={4} mb={3} wrap="wrap">
+                {/* Índice UV */}
+                {/* NOTA: uv_index não está no tipo IQVData padrão. Se estiver disponível via backend, descomente abaixo */}
+                {/* {data.uv_index !== undefined && (
+                  <Badge 
+                    px={3} 
+                    py={1} 
+                    borderRadius="full" 
+                    fontWeight="medium"
+                    colorScheme={getUvColorScheme(data.uv_index)}
+                  >
+                    <Flex align="center" gap={1}>
+                      <Icon as={FaSun} boxSize={3} />
+                      <Text>UV: {data.uv_index} – {getUvLabel(data.uv_index)}</Text>
+                    </Flex>
+                  </Badge>
+                )} */}
+
+                {/* Qualidade do Ar (AQI) */}
+                {/* NOTA: aqi não está no tipo IQVData padrão. Se estiver disponível via backend, descomente abaixo */}
+                {/* {data.aqi?.us_epa_index !== undefined && (
+                  <Badge 
+                    px={3} 
+                    py={1} 
+                    borderRadius="full" 
+                    fontWeight="medium"
+                    colorScheme={getAqiColorScheme(data.aqi.us_epa_index)}
+                  >
+                    <Flex align="center" gap={1}>
+                      <Icon as={FaCloud} boxSize={3} />
+                      <Text>AQI: {data.aqi.us_epa_index} – {getAqiLabel(data.aqi.us_epa_index)}</Text>
+                    </Flex>
+                  </Badge>
+                )} */}
+              </Flex>
+
+              {/* Linha 4: População e Hora local */}
+              <Flex justify="center" align="center" gap={4} fontSize="sm">
+                {/* População */}
                 {data.population !== undefined && data.population !== null && (
                   <Flex align="center" gap={1}>
-                    <Icon as={FaUsers} color={useColorModeValue('blue.600', 'blue.300')} boxSize={3} />
+                    <Icon as={FaUsers} color={useColorModeValue('blue.500', 'blue.300')} boxSize={3} />
                     <Text color={useColorModeValue('gray.600', 'gray.300')}>
-                      {data.population >= 1000000 
-                        ? `${(data.population / 1000000).toFixed(1)}M` 
-                        : data.population >= 1000 
-                          ? `${(data.population / 1000).toFixed(1)}k` 
-                          : data.population.toString()}
+                      {formatPopulation(data.population)} habitantes
                     </Text>
                   </Flex>
                 )}
-                {data.hdi !== undefined && data.hdi !== null && (
+                
+                {/* Hora local */}
+                {data.timestamp && (
                   <Flex align="center" gap={1}>
-                    <Icon as={FaChartLine} color={useColorModeValue('blue.600', 'blue.300')} boxSize={3} />
+                    <Icon as={FaClock} color={useColorModeValue('blue.500', 'blue.300')} boxSize={3} />
                     <Text color={useColorModeValue('gray.600', 'gray.300')}>
-                      {data.hdi.toFixed(3)} 
-                      {data.hdi >= 0.8 ? ' (Very High)' : 
-                       data.hdi >= 0.7 ? ' (High)' : 
-                       data.hdi >= 0.55 ? ' (Medium)' : ' (Low)'}
-                      {data.hdi_year ? ` (${data.hdi_year})` : ''}
+                      {formatLocalTime()}
                     </Text>
                   </Flex>
                 )}
-              </Flex>
-
-              {/* Linha 4: Coordenadas e Hora */}
-              <Flex
-                justify="center"
-                align="center"
-                gap={{ base: 3, sm: 4 }}
-                fontSize="xs"
-                color={useColorModeValue('gray.600', 'gray.300')}
-                flexWrap="wrap"
-              >
-                <Flex align="center" gap={1}>
-                  <Icon as={FaMapMarkerAlt} boxSize={3} />
-                  <Text>
-                    {data.latitude.toFixed(4)}, {data.longitude.toFixed(4)}
-                  </Text>
-                </Flex>
-                <Flex align="center" gap={1}>
-                  <Icon as={FaClock} boxSize={3} />
-                  <Text>Updated: {new Date(data.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</Text>
-                </Flex>
               </Flex>
             </Flex>
           </Box>
           
-          {/* Componentes existentes - CityHeader removido pois foi integrado acima */}
-          {/* <CityHeader data={data} /> */} 
+          {/* Componentes existentes */}
           <MetricsGrid data={data} />
           <IQVBreakdown data={data} />
           <ForecastSection 
             forecast={forecast} 
-            mlPrediction={mlPrediction}
+            // mlPrediction={mlPrediction}
           />
           <WeatherRadarMap data={data} />
           <CityComparison

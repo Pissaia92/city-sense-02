@@ -14,7 +14,7 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
   // Tenta usar o hook do Chakra primeiro
   const chakraColorMode = useColorMode();
-  const [internalTheme, setInternalTheme] = useState<Theme>('light');
+  const [internalTheme, setInternalTheme] = useState<Theme>('dark');
 
   // Determina o tema real (prioriza o do Chakra se disponível e consistente)
   const currentTheme: Theme = chakraColorMode?.colorMode === 'dark' || 
