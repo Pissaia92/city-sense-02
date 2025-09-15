@@ -14,6 +14,10 @@ export interface IQVData {
   latitude: number;
   longitude: number;
   weather?: { description: string };
+  state?: string;
+  population?: number;
+  hdi?: number;
+  hdi_year?: number;
 }
 
 export interface ForecastPoint {

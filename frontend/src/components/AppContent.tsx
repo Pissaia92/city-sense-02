@@ -1,13 +1,16 @@
-// frontend/src/components/AppContent.tsx
 import React, { useState, useEffect, useRef } from 'react';
 import { useTheme } from '../context/ThemeContext';
 import { WeatherRadarMap } from '../components/data/WeatherRadarMap';
+// Icons
+import { FaMapMarkerAlt, FaClock, FaUsers, FaChartLine } from 'react-icons/fa';
 // Chakra UI Components
 import { 
   Box, 
   Center, 
   Container,
   Flex,
+  Text, 
+  Icon,
   useColorModeValue,
   IconButton,
   Tooltip,
@@ -20,13 +23,13 @@ import { LoadingState, ErrorState } from './ui/States';
 import { InitialState } from './ui/InitialState';
 import { SearchBar } from './search/SearchBar';
 // City Components
-import { CityHeader } from './city/CityHeader';
+// import { CityHeader } from './city/CityHeader'; // Comented for now
 import { CityComparison } from './city/CityComparison';
 // Data Components
 import { MetricsGrid } from './data/MetricsGrid';
 import { IQVBreakdown } from './data/IQVBreakdown';
 import { ForecastSection } from './data/ForecastSection';
-// Types - Import from the correct location
+// Types
 import { IQVData, ForecastPoint } from '../types'; 
 
 interface AppContentProps {
@@ -34,7 +37,6 @@ interface AppContentProps {
 }
 
 export const AppContent: React.FC<AppContentProps> = ({ API_URL }) => {
-  // ✅ Correct usage of ThemeContext
   const { theme, toggleTheme } = useTheme();
   const [data, setData] = useState<IQVData | null>(null);
   const [loading, setLoading] = useState(false);
@@ -239,7 +241,6 @@ export const AppContent: React.FC<AppContentProps> = ({ API_URL }) => {
   // But for specific overrides based on our context, we'll use conditionals
   const bgColor = useColorModeValue('gray.50', 'gray.900');
   const textColor = useColorModeValue('gray.800', 'white');
-  
   // Determine theme-specific values based on our ThemeContext
   const isDarkMode = theme === 'dark';
   const headerGradient = isDarkMode 
@@ -262,112 +263,187 @@ export const AppContent: React.FC<AppContentProps> = ({ API_URL }) => {
   const themeLabel = isDarkMode ? "Switch to light mode" : "Switch to dark mode";
 
   return (
-  <Box 
-    minH="100vh" 
-    bg={bgColor}
-    color={textColor}
-  >
-    {/* Modern Header with Gradient */}
     <Box 
-      bgGradient={useColorModeValue(
-        'linear(to-r, brand.400, brand.600)', 
-        'linear(to-r, brand.600, brand.800)'
-      )}
-      py={4}
-      boxShadow="sm"
+      minH="100vh" 
+      bg={bgColor}
+      color={textColor}
     >
-      <Container maxW="container.xl">
-        <Flex 
-          justify="space-between" 
-          align="center"
-          py={2}
-        >
-          <Flex align="center" gap={3}>
-            <Box 
-              fontSize="2xl" 
-              fontWeight="bold"
-              color="white"
-            >
-              🌍 City Sense
-            </Box>
-            <Badge 
-              colorScheme="green" 
-              variant="solid"
-              fontSize="xs"
-              borderRadius="full"
-              px={2}
-            >
-              BETA
-            </Badge>
-          </Flex>
-          {/* ✅ Corrigido: Tooltip e IconButton usando o estado do ThemeContext */}
-          <Tooltip 
-            label={themeLabel}
-            placement="bottom"
+      {/* Modern Header with Gradient */}
+      <Box 
+        bgGradient={useColorModeValue(
+          'linear(to-r, brand.400, brand.600)', 
+          'linear(to-r, brand.600, brand.800)'
+        )}
+        py={4}
+        boxShadow="sm"
+      >
+        <Container maxW="container.xl">
+          <Flex 
+            justify="space-between" 
+            align="center"
+            py={2}
           >
-            <IconButton
-              onClick={toggleTheme}
-              aria-label={themeLabel}
-              icon={themeIcon}
-              variant="ghost"
-              color="white"
-              _hover={{
-                bg: useColorModeValue('brand.500', 'brand.700'),
-                transform: 'scale(1.1)',
-              }}
-              transition="all 0.2s"
+            <Flex align="center" gap={3}>
+              <Box 
+                fontSize="2xl" 
+                fontWeight="bold"
+                color="white"
+              >
+                🌍 City Sense
+              </Box>
+              <Badge 
+                colorScheme="green" 
+                variant="solid"
+                fontSize="xs"
+                borderRadius="full"
+                px={2}
+              >
+                BETA
+              </Badge>
+            </Flex>
+            {/* ✅ Corrigido: Tooltip e IconButton usando o estado do ThemeContext */}
+            <Tooltip 
+              label={themeLabel}
+              placement="bottom"
+            >
+              <IconButton
+                onClick={toggleTheme}
+                aria-label={themeLabel}
+                icon={themeIcon}
+                variant="ghost"
+                color="white"
+                _hover={{
+                  bg: useColorModeValue('brand.500', 'brand.700'),
+                  transform: 'scale(1.1)',
+                }}
+                transition="all 0.2s"
+              />
+            </Tooltip>
+          </Flex>
+        </Container>
+      </Box>
+      
+      {/* Search Section with Modern Styling */}
+      <Container maxW="container.xl" py={6}>
+        <Center>
+          <Box w="100%" maxW="xl">
+            <SearchBar 
+              onSearch={fetchData}
+              initialCity={inputCity}
+              setInputCity={setInputCity}
+              fetchSuggestions={fetchSuggestions}
             />
-          </Tooltip>
-        </Flex>
-      </Container>
-    </Box>
-    
-    {/* Search Section with Modern Styling */}
-    <Container maxW="container.xl" py={6}>
-      <Center>
-        <Box w="100%" maxW="xl">
-          <SearchBar 
-            onSearch={fetchData}
-            initialCity={inputCity}
-            setInputCity={setInputCity}
+          </Box>
+        </Center>
+        
+        {/* Main Content */}
+        <Box>
+          {/* ✅ NOVA SEÇÃO: Informações Consolidadas da Cidade */}
+          <Box
+            bg={useColorModeValue('gray.100', 'gray.700')}
+            borderRadius="lg"
+            p={{ base: 3, sm: 4 }}
+            shadow="md"
+            mb={6}
+            maxW="2xl"
+            mx="auto"
+            borderWidth="1px"
+            borderColor={useColorModeValue('gray.300', 'gray.600')}
+          >
+            <Flex direction="column" align="center">
+              {/* Linha 1: Localização */}
+              <Flex align="center" gap={2} mb={2}>
+                <Icon as={FaMapMarkerAlt} color={useColorModeValue('gray.800', 'white')} boxSize={4} />
+                <Text fontSize="sm" fontWeight="bold" color={useColorModeValue('gray.800', 'white')}>
+                  {data.city}{data.state ? `, ${data.state}` : ''}, {data.country}
+                </Text>
+              </Flex>
+
+              {/* Linha 2: Temperatura e Condição */}
+              <Flex align="center" gap={3} mb={2}>
+                <Text fontSize={{ base: '2xl', md: '3xl' }} fontWeight="bold" color={useColorModeValue('gray.800', 'white')}>
+                  {data.temperature.toFixed(1)}°C
+                </Text>
+                {data.weather?.description && (
+                  <Text fontSize="sm" color={useColorModeValue('gray.600', 'gray.300')}>
+                    {data.weather.description.charAt(0).toUpperCase() + data.weather.description.slice(1)}
+                  </Text>
+                )}
+              </Flex>
+
+              {/* Linha 3: População e HDI */}
+              <Flex justify="center" align="center" wrap="wrap" gap={4} mb={2} fontSize="sm">
+                {data.population !== undefined && data.population !== null && (
+                  <Flex align="center" gap={1}>
+                    <Icon as={FaUsers} color={useColorModeValue('blue.600', 'blue.300')} boxSize={3} />
+                    <Text color={useColorModeValue('gray.600', 'gray.300')}>
+                      {data.population >= 1000000 
+                        ? `${(data.population / 1000000).toFixed(1)}M` 
+                        : data.population >= 1000 
+                          ? `${(data.population / 1000).toFixed(1)}k` 
+                          : data.population.toString()}
+                    </Text>
+                  </Flex>
+                )}
+                {data.hdi !== undefined && data.hdi !== null && (
+                  <Flex align="center" gap={1}>
+                    <Icon as={FaChartLine} color={useColorModeValue('blue.600', 'blue.300')} boxSize={3} />
+                    <Text color={useColorModeValue('gray.600', 'gray.300')}>
+                      {data.hdi.toFixed(3)} 
+                      {data.hdi >= 0.8 ? ' (Very High)' : 
+                       data.hdi >= 0.7 ? ' (High)' : 
+                       data.hdi >= 0.55 ? ' (Medium)' : ' (Low)'}
+                      {data.hdi_year ? ` (${data.hdi_year})` : ''}
+                    </Text>
+                  </Flex>
+                )}
+              </Flex>
+
+              {/* Linha 4: Coordenadas e Hora */}
+              <Flex
+                justify="center"
+                align="center"
+                gap={{ base: 3, sm: 4 }}
+                fontSize="xs"
+                color={useColorModeValue('gray.600', 'gray.300')}
+                flexWrap="wrap"
+              >
+                <Flex align="center" gap={1}>
+                  <Icon as={FaMapMarkerAlt} boxSize={3} />
+                  <Text>
+                    {data.latitude.toFixed(4)}, {data.longitude.toFixed(4)}
+                  </Text>
+                </Flex>
+                <Flex align="center" gap={1}>
+                  <Icon as={FaClock} boxSize={3} />
+                  <Text>Updated: {new Date(data.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</Text>
+                </Flex>
+              </Flex>
+            </Flex>
+          </Box>
+          
+          {/* Componentes existentes - CityHeader removido pois foi integrado acima */}
+          {/* <CityHeader data={data} /> */} 
+          <MetricsGrid data={data} />
+          <IQVBreakdown data={data} />
+          <ForecastSection 
+            forecast={forecast} 
+            mlPrediction={mlPrediction}
+          />
+          <WeatherRadarMap data={data} />
+          <CityComparison
+            comparisonCity={comparisonCity}
+            setComparisonCity={setComparisonCity}
+            comparisonData={comparisonData}
+            comparisonForecast={comparisonForecast}
+            fetchComparisonData={fetchComparisonData}
             fetchSuggestions={fetchSuggestions}
+            showComparisonSuggestions={showComparisonSuggestions}
+            setShowComparisonSuggestions={setShowComparisonSuggestions}
+            comparisonSearchRef={comparisonSearchRef}
           />
         </Box>
-      </Center>
-      
-      {/* Main Content */}
-      <Box>
-        {/* City Header - Mais compacto */}
-        <CityHeader data={data} />
-
-        {/* Metrics Grid - Manter como está */}
-        <MetricsGrid data={data} />
-        
-        {/* IQV Breakdown - Manter como está */}
-        <IQVBreakdown data={data} />
-        
-        {/* Forecast Section - Manter como está */}
-        <ForecastSection 
-          forecast={forecast} 
-          mlPrediction={mlPrediction}
-        />
-        
-        {/* Weather Radar Map - Manter como está */}
-        <WeatherRadarMap data={data} />
-        
-        {/* City Comparison - Manter como está */}
-        <CityComparison
-          comparisonCity={comparisonCity}
-          setComparisonCity={setComparisonCity}
-          comparisonData={comparisonData}
-          comparisonForecast={comparisonForecast}
-          fetchComparisonData={fetchComparisonData}
-          fetchSuggestions={fetchSuggestions}
-          showComparisonSuggestions={showComparisonSuggestions}
-          setShowComparisonSuggestions={setShowComparisonSuggestions}
-          comparisonSearchRef={comparisonSearchRef}
-        />
-      </Box>
-    </Container>
-  </Box>
-);}
+      </Container>
+    </Box>
+  );
+};
