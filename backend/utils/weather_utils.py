@@ -213,16 +213,71 @@ async def fetch_enriched_city_data(city_name: str, country_code: str) -> Dict[st
 async def get_iqv_data(city: str) -> Dict[str, Any]:
     """Main function to fetch IQV data using WeatherAPI and enriched data."""
     try:
+        # 1. Get raw data from WeatherAPI
         raw_weather_data = await get_current_weather_and_forecast(city)
-        processed_data = process_weatherapi_data(raw_weather_data)
-
+        
+        # 2. Process main weather data
+        processed_data = process_weatherapi_data(raw_weather_data)       
+        
+        # 3. Extract current conditions (includes AQI and UV)
         current_data = raw_weather_data.get("current", {})
         raw_aqi_data = current_data.get("air_quality", {})
         formatted_aqi_data = {"us_epa_index": raw_aqi_data.get("us-epa-index")} if raw_aqi_data else None
-        uv_index = current_data.get("uv")
-
+        uv_index = current_data.get("uv")    
+        
+        # 4. Get country code for enrichment
         country_code = raw_weather_data["location"].get("country", "")[:2].upper()
         enriched_data = await fetch_enriched_city_data(city, country_code)
+
+        # 5. Calculate Precipitation Index 
+        precipitation_index_value = None
+        precipitation_summary = "N/A"
+        forecast_days = raw_weather_data.get("forecast", {}).get("forecastday", [])
+
+        if forecast_days and len(forecast_days) > 0:
+            try:
+                # Analyze forecast hours
+                forecast_hours = forecast_days[0].get("hour", []) # Hours from the first forecast day
+                if forecast_hours:
+                    # Analyze the next 4 hours
+                    next_hours_to_check = forecast_hours[:4] 
+                    
+                    max_chance_of_rain = 0.0
+                    total_chance = 0.0
+                    count = 0
+                    
+                    for hour_point in next_hours_to_check:
+                        # Get chance of rain
+                        chance_str = str(hour_point.get("chance_of_rain", "0"))
+                        try:
+                            chance = float(chance_str) if chance_str.isdigit() else 0.0
+                        except (ValueError, TypeError):
+                            chance = 0.0
+                        
+                        total_chance += chance
+                        if chance > max_chance_of_rain:
+                            max_chance_of_rain = chance
+                        count += 1
+                    
+                    if count > 0:
+                        avg_chance = total_chance / count
+                        
+                        # Calculation Logic for Precipitation Index, (0-10 scale) combines average likelihood and peak likelihood
+                        precipitation_index_value = min(10.0, max(0.0, (avg_chance * 0.7) + (max_chance_of_rain * 0.3)))
+                        
+                        # Determine textual summary based on peak chance
+                        if max_chance_of_rain <= 20:
+                            precipitation_summary = "Low"
+                        elif max_chance_of_rain <= 50:
+                            precipitation_summary = "Moderate"
+                        elif max_chance_of_rain <= 80:
+                            precipitation_summary = "High"
+                        else:
+                            precipitation_summary = "Very High"
+                            
+            except Exception as e:
+                print(f"Error calculating Precipitation Index: {e}")
+        # 6.  Precipitation Index Calculation end
 
         processed_data.update({
             "state": enriched_data.get("state"),
@@ -230,7 +285,11 @@ async def get_iqv_data(city: str) -> Dict[str, Any]:
             "hdi": enriched_data.get("hdi"),
             "hdi_year": enriched_data.get("hdi_year"),
             "aqi": formatted_aqi_data,
-            "uv_index": uv_index
+            "uv_index": uv_index,
+            "precipitation_index": {
+                "value": round(precipitation_index_value, 1) if precipitation_index_value is not None else None,
+                "summary": precipitation_summary
+            }
         })
 
         return processed_data

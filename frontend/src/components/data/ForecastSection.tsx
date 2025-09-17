@@ -1,4 +1,3 @@
-// frontend/src/components/data/ForecastSection.tsx
 import React from 'react';
 import { 
   Flex, 
@@ -8,27 +7,21 @@ import {
   CardBody,
   Heading,
   SimpleGrid,
-  Icon, // Removido Box e Badge, pois não são usados
+  Icon,
   Tooltip
 } from '@chakra-ui/react';
-// Corrigido: Importando os tipos de forma consistente
 import { ForecastPoint } from '../../types'; 
-// Corrigido: Importando os ícones como componentes, não elementos
 import { FiSun, FiCloud, FiCloudRain, FiWind, FiDroplet, FiThermometer } from 'react-icons/fi';
 
-// Corrigido: Removendo definições de interface duplicadas, pois já estão em types/index.ts
 interface ForecastSectionProps {
   forecast: ForecastPoint[] | null;
-  // mlPrediction: any; // Removido conforme solicitado anteriormente
 }
 
-export const ForecastSection: React.FC<ForecastSectionProps> = ({ forecast /*, mlPrediction - Removido */ }) => {
+export const ForecastSection: React.FC<ForecastSectionProps> = ({ forecast }) => {
   const bgColor = useColorModeValue('white', 'gray.800');
   const borderColor = useColorModeValue('gray.200', 'gray.700');
   const textColor = useColorModeValue('gray.800', 'white');
   const subtitleColor = useColorModeValue('gray.600', 'gray.400');
-
-  // Função para obter ícone do clima - Corrigido: Usando description
   const getWeatherIcon = (description: string) => {
     if (!description) return FiSun;
     const desc = description.toLowerCase();
@@ -41,10 +34,9 @@ export const ForecastSection: React.FC<ForecastSectionProps> = ({ forecast /*, m
     if (desc.includes('sun') || desc.includes('clear') || desc.includes('sol')) {
       return FiSun;
     }
-    return FiSun; // Valor padrão
+    return FiSun;
   };
 
-  // Função para obter cor do clima - Corrigido: Usando description
   const getWeatherColor = (description: string) => {
     if (!description) return 'yellow.400';
     const desc = description.toLowerCase();
@@ -57,10 +49,9 @@ export const ForecastSection: React.FC<ForecastSectionProps> = ({ forecast /*, m
     if (desc.includes('sun') || desc.includes('clear') || desc.includes('sol')) {
       return 'yellow.400';
     }
-    return 'yellow.400'; // Cor padrão
+    return 'yellow.400';
   };
 
-  // Função para formatar data
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', { 
@@ -70,29 +61,27 @@ export const ForecastSection: React.FC<ForecastSectionProps> = ({ forecast /*, m
     });
   };
 
-  // Agrupa os dados de previsão por dia para evitar repetições
+  // Forecast data maint to avoid repetitions
   const groupByDay = (forecastList: ForecastPoint[]): ForecastPoint[] => {
     const grouped: { [key: string]: ForecastPoint } = {};
     forecastList.forEach(point => {
-      const dateKey = new Date(point.datetime).toDateString(); // 'Mon Sep 15 2025'
-      // Mantém o primeiro ponto do dia
+      const dateKey = new Date(point.datetime).toDateString();
       if (!grouped[dateKey]) {
         grouped[dateKey] = point;
       }
     });
-    // Converte o objeto agrupado de volta para um array ordenado
+    // Convert object to ordered array
     return Object.values(grouped).sort((a, b) => 
-      // Corrigido: b_datetime -> b.datetime
       new Date(a.datetime).getTime() - new Date(b.datetime).getTime()
     );
   };
 
-  // Se não houver dados de previsão, não renderiza nada
+  // no data case
   if (!forecast || forecast.length === 0) {
     return null; 
   }
 
-  // Agrupa os dados por dia
+  // group data by day
   const dailyForecast = groupByDay(forecast);
 
   return (
@@ -107,12 +96,12 @@ export const ForecastSection: React.FC<ForecastSectionProps> = ({ forecast /*, m
     >
       <CardBody>
         <Heading size="md" mb={6} color={textColor} textAlign="center">
-          5-Day Weather Forecast
+          Simple 5-Day Weather Forecast
         </Heading>
         <SimpleGrid columns={{ base: 1, sm: 2, md: Math.min(5, dailyForecast.length) }} spacing={4}>
           {dailyForecast.slice(0, 5).map((point, index) => (
             <Card 
-              key={`${point.datetime}-${index}`} // Chave mais robusta
+              key={`${point.datetime}-${index}`}
               p={4}
               borderRadius="lg"
               shadow="sm"
@@ -135,7 +124,6 @@ export const ForecastSection: React.FC<ForecastSectionProps> = ({ forecast /*, m
               </Text>
               <Flex justify="center" mb={3}>
                 <Tooltip label={point.description} placement="top">
-                  {/* Corrigido: Passando o componente, não a instância */}
                   <Icon 
                     as={getWeatherIcon(point.description)} 
                     color={getWeatherColor(point.description)} 
@@ -164,7 +152,6 @@ export const ForecastSection: React.FC<ForecastSectionProps> = ({ forecast /*, m
             </Card>
           ))}
         </SimpleGrid>
-        {/* Bloco de Predição ML REMOVIDO conforme solicitado */}
       </CardBody>
     </Card>
   );

@@ -13,6 +13,8 @@ export interface IQVData {
     humidity: number;
     wind: number;
     overall: number;
+    value?: number;
+    summary?: string;
   };
   timestamp: string;
   latitude: number;
@@ -22,10 +24,11 @@ export interface IQVData {
   population?: number;
   hdi?: number;
   hdi_year?: number;
-  
-  // ambiental fields
-  aqi?: AqiDetails;
+  aqi?: {
+    us_epa_index?: number;
+  };
   uv_index?: number;
+  precipitation_index?: PrecipitationIndex;
 }
 
 export interface ForecastPoint {
@@ -35,4 +38,9 @@ export interface ForecastPoint {
   wind_speed: number;
   description: string;
   icon: string;
+}
+
+export interface PrecipitationIndex {
+  value?: number;
+  summary?: string;
 }
