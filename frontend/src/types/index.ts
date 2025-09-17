@@ -1,3 +1,7 @@
+export interface AqiDetails {
+  us_epa_index?: number;
+}
+
 export interface IQVData {
   city: string;
   country: string;
@@ -9,11 +13,6 @@ export interface IQVData {
     humidity: number;
     wind: number;
     overall: number;
-    uv_index?: number;
-    aqi?: {
-      us_epa_index?: number;
-      pm2_5?: number;
-    };
   };
   timestamp: string;
   latitude: number;
@@ -23,6 +22,10 @@ export interface IQVData {
   population?: number;
   hdi?: number;
   hdi_year?: number;
+  
+  // ambiental fields
+  aqi?: AqiDetails;
+  uv_index?: number;
 }
 
 export interface ForecastPoint {

@@ -7,8 +7,7 @@ import {
   Card,
   CardBody,
   Heading,
-  Progress,
-  Badge
+  Progress
 } from '@chakra-ui/react';
 
 interface IQVData {
@@ -33,7 +32,7 @@ interface IQVData {
 }
 
 interface MetricsGridProps {
-  data: IQVData; // Adicionando a prop data
+  data: IQVData; // prop data
 }
 
 export const MetricsGrid: React.FC<MetricsGridProps> = ({ data }) => {
@@ -42,7 +41,7 @@ export const MetricsGrid: React.FC<MetricsGridProps> = ({ data }) => {
   const textColor = useColorModeValue('gray.800', 'white');
   const subtitleColor = useColorModeValue('gray.600', 'gray.400');
   
-  // Função para obter cor do IQV
+  // color funct
   const getIqvColor = (value: number) => {
     if (value >= 80) return 'green.400';
     if (value >= 60) return 'yellow.400';
@@ -50,7 +49,7 @@ export const MetricsGrid: React.FC<MetricsGridProps> = ({ data }) => {
     return 'red.400';
   };
 
-  // Função para obter cor da temperatura
+  // temp color
   const getTempColor = (temp: number) => {
     if (temp > 30) return 'red.400';
     if (temp > 25) return 'orange.400';
