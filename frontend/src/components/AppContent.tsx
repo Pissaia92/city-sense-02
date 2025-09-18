@@ -1,78 +1,65 @@
-// frontend/src/components/AppContent.tsx
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+// Context
 import { useTheme } from '../context/ThemeContext';
-import { WeatherRadarMap } from '../components/data/WeatherRadarMap';
-// Chakra UI Components
-import { 
-  Box, 
-  Center, 
-  Container,
+// Components
+import { WeatherRadarMap } from './data/WeatherRadarMap';
+import { SearchBar } from './search/SearchBar';
+import { MetricsGrid } from './data/MetricsGrid';
+import { QoLBreakdown } from './data/QoLBreakdown';
+import { ForecastSection } from './data/ForecastSection';
+import { CityComparison } from './city/CityComparison';
+import { LoadingState, ErrorState } from './ui/States';
+import { InitialState } from './ui/InitialState';
+// Chakra UI
+import {
+  Box,
   Flex,
   Text,
   Icon,
   useColorModeValue,
   IconButton,
   Tooltip,
-  Badge
+  Badge,
+  Container,
+  Center
 } from '@chakra-ui/react';
-// Icons
 import { SunIcon, MoonIcon } from '@chakra-ui/icons';
-import { 
-  FiSun, 
-  FiCloud, 
-  FiCloudRain,  
-  FiCloudSnow 
-} from 'react-icons/fi';
-import { FaMapMarkerAlt, FaClock, FaUsers, } from 'react-icons/fa';
-// UI Components
-import { LoadingState, ErrorState } from './ui/States';
-import { InitialState } from './ui/InitialState';
-import { SearchBar } from './search/SearchBar';
-// City Components
-import { CityComparison } from './city/CityComparison';
-// Data Components
-import { MetricsGrid } from './data/MetricsGrid';
-import { IQVBreakdown } from './data/IQVBreakdown';
-import { ForecastSection } from './data/ForecastSection';
-// Types - Import from the correct location
-import { IQVData, ForecastPoint } from '../types'; 
+import { FaMapMarkerAlt, FaClock, FaUsers } from 'react-icons/fa';
+// Types
+import { QoLData, ForecastPoint } from '../types';
 
 interface AppContentProps {
   API_URL: string;
 }
 
 export const AppContent: React.FC<AppContentProps> = ({ API_URL }) => {
-  // Theme context
-  const { theme, toggleTheme } = useTheme();
-  // State management
-  const [data, setData] = useState<IQVData | null>(null);
+  // 1. STATE MANAGEMENT
+  const [data, setData] = useState<QoLData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [city, setCity] = useState<string | null>(null);
   const [inputCity, setInputCity] = useState('São Paulo');
   const [forecast, setForecast] = useState<ForecastPoint[] | null>(null);
   const [comparisonCity, setComparisonCity] = useState<string>('');
-  const [comparisonData, setComparisonData] = useState<IQVData | null>(null);
-  const [comparisonForecast, setComparisonForecast] = useState<ForecastPoint[] | null>(null);
+  const [comparisonData, setComparisonData] = useState<QoLData | null>(null);
   const [showComparisonSuggestions, setShowComparisonSuggestions] = useState(false);
+  const [comparisonForecast, setComparisonForecast] = useState<ForecastPoint[] | null>(null);
   const [searchTried, setSearchTried] = useState(false);
-  const [, setMlPrediction] = useState<any>(null);
-  const searchRef = useRef<HTMLDivElement>(null);
+  const [mlPrediction, setMlPrediction] = useState<any>(null);
+  // Refs
   const comparisonSearchRef = useRef<HTMLDivElement>(null);
-
+  // 2. CONTEXTS
+  const { theme, toggleTheme } = useTheme();  
+  // 3. EFFECTS
   // Handle click outside for search suggestions
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
-        // setShowSuggestions(false); // Removido pois não está sendo usado
-      }
       if (comparisonSearchRef.current && !comparisonSearchRef.current.contains(event.target as Node)) {
-        setShowComparisonSuggestions(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+  }, []); // empty deps executed only 1x
 
   // Initial data fetch
   useEffect(() => {
@@ -106,7 +93,8 @@ export const AppContent: React.FC<AppContentProps> = ({ API_URL }) => {
     }
   }, [city, data]);
 
-  const fetchData = async (cityName: string) => {
+  // 4. CALLBACKS
+  const fetchData = useCallback(async (cityName: string) => {
     const formattedCity = cityName.trim();
     if (!formattedCity) return;
     setLoading(true);
@@ -114,7 +102,7 @@ export const AppContent: React.FC<AppContentProps> = ({ API_URL }) => {
     try {
       console.log(`🔍 Fetching data for: ${formattedCity}`);
       const response = await fetch(
-        `${API_URL}/api/iqv?city=${encodeURIComponent(formattedCity)}`,
+        `${API_URL}/api/QoL?city=${encodeURIComponent(formattedCity)}`,
         { signal: AbortSignal.timeout(10000) } // 10 second timeout
       );
       console.log(`📊 Response status: ${response.status}`);
@@ -132,7 +120,7 @@ export const AppContent: React.FC<AppContentProps> = ({ API_URL }) => {
       }
       const contentType = response.headers.get('content-type');
       if (contentType && contentType.includes('application/json')) {
-        const result: IQVData = await response.json(); // Explicit typing
+        const result: QoLData = await response.json(); // Explicit typing
         console.log('✅ Data received:', result);
         setData(result);
         setCity(formattedCity);
@@ -156,9 +144,9 @@ export const AppContent: React.FC<AppContentProps> = ({ API_URL }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [API_URL]); // API_URL as dependency
 
-  const fetchForecast = async (cityName?: string) => {
+  const fetchForecast = useCallback(async (cityName?: string) => {
     const cityToFetch = cityName || city;
     if (!cityToFetch) return;
     try {
@@ -193,13 +181,13 @@ export const AppContent: React.FC<AppContentProps> = ({ API_URL }) => {
       if (cityName === comparisonCity) setComparisonForecast(null);
       else setForecast(null);
     }
-  };
+  }, [API_URL, city, comparisonCity]); // Dep
 
-  const fetchMLPrediction = async () => {
+  const fetchMLPrediction = useCallback(async () => {
     if (!city) return;
     try {
       const response = await fetch(
-        `${API_URL}/api/predict/iqv?city=${encodeURIComponent(city)}`,
+        `${API_URL}/api/predict/QoL?city=${encodeURIComponent(city)}`,
         { signal: AbortSignal.timeout(15000) } // 15 second timeout
       );
       if (response.ok) {
@@ -209,9 +197,9 @@ export const AppContent: React.FC<AppContentProps> = ({ API_URL }) => {
     } catch (err) {
       console.error('Error fetching ML forecast:', err);
     }
-  };
+  }, [API_URL, city]); // Dependências
 
-  const fetchSuggestions = async (query: string) => {
+  const fetchSuggestions = useCallback(async (query: string) => {
     if (!query.trim()) return [];
     try {
       const response = await fetch(`${API_URL}/api/suggestions?query=${encodeURIComponent(query)}`);
@@ -223,18 +211,18 @@ export const AppContent: React.FC<AppContentProps> = ({ API_URL }) => {
       console.error('Error fetching suggestions:', err);
     }
     return [];
-  };
+  }, [API_URL]);
 
-  const fetchComparisonData = async (cityName: string) => {
+  const fetchComparisonData = useCallback(async (cityName: string) => {
     if (!cityName.trim()) {
       setComparisonData(null);
       setComparisonForecast(null);
       return;
     }
     try {
-      const response = await fetch(`${API_URL}/api/iqv?city=${encodeURIComponent(cityName)}`);
+      const response = await fetch(`${API_URL}/api/QoL?city=${encodeURIComponent(cityName)}`);
       if (response.ok) {
-        const result: IQVData = await response.json(); // Explicit typing
+        const result: QoLData = await response.json(); // Explicit typing
         setComparisonData(result);
         setComparisonCity(cityName);
       }
@@ -242,15 +230,20 @@ export const AppContent: React.FC<AppContentProps> = ({ API_URL }) => {
       console.error('Error fetching comparison ', err);
       setComparisonData(null);
     }
-  };
+  }, [API_URL]);
 
-  // Theme colors - Still using useColorModeValue for base elements
+  // 5. THEME COLORS
   const bgColor = useColorModeValue('gray.50', 'gray.900');
   const textColor = useColorModeValue('gray.800', 'white');
-  
-  // Determine theme-specific values based on our ThemeContext
-  const isDarkMode = theme === 'dark';
+  const headerGradient = useColorModeValue(
+    'linear(to-r, brand.400, brand.600)',
+    'linear(to-r, brand.600, brand.800)'
+  );
+  const borderColor = useColorModeValue('gray.300', 'gray.600');
+  const subtitleColor = useColorModeValue('gray.600', 'gray.400');
+  const highlightColor = useColorModeValue('blue.600', 'blue.300');
 
+  // 6. RENDER LOGIC
   if (loading && !data) {
     return <LoadingState />;
   }
@@ -261,9 +254,8 @@ export const AppContent: React.FC<AppContentProps> = ({ API_URL }) => {
     return <InitialState onFetchData={fetchData} />;
   }
 
-  // Determine icon and label based on our ThemeContext state
-  const themeIcon = isDarkMode ? <SunIcon /> : <MoonIcon />;
-  const themeLabel = isDarkMode ? "Switch to light mode" : "Switch to dark mode";
+  const themeIcon = theme === 'dark' ? <SunIcon /> : <MoonIcon />;
+  const themeLabel = theme === 'dark' ? "Switch to light mode" : "Switch to dark mode";
 
   // Process weather description
   const weatherDescription = data.weather?.description || '';
@@ -280,73 +272,34 @@ export const AppContent: React.FC<AppContentProps> = ({ API_URL }) => {
       case 'thunderstorm': conditionText = 'Thunderstorm'; break;
       case 'snow': conditionText = 'Snow'; break;
       case 'mist': conditionText = 'Mist'; break;
-      // Adicione mais conforme necessário
+      // Space for more, if needed
     }
   }
 
-  // Formata a população
+  // Pop format
   const formatPopulation = (pop?: number) => {
     if (pop === undefined || pop === null) return 'N/A';
     if (pop >= 1000000) {
       return `${(pop / 1000000).toFixed(1)}M`;
-    } else if (pop >= 1000) {
+    }
+    if (pop >= 1000) {
       return `${(pop / 1000).toFixed(1)}k`;
     }
     return pop.toString();
   };
 
-  // Formata a hora local
+  // Coord format
+  const formatCoordinates = (lat?: number, lon?: number) => {
+    if (lat === undefined || lon === undefined) return 'N/A';
+    return `${lat.toFixed(4)}, ${lon.toFixed(4)}`;
+  };
+
+  // Local time format
   const formatLocalTime = () => {
     if (!data.timestamp) return 'N/A';
     const date = new Date(data.timestamp);
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
-
-  // --- Funções auxiliares para ícones e cores do clima ---
-  const getWeatherIcon = (description: string) => {
-    if (!description) return FiSun;
-    const desc = description.toLowerCase();
-    if (desc.includes('rain') || desc.includes('storm') || desc.includes('chuva')) {
-      return FiCloudRain;
-    }
-    if (desc.includes('cloud') || desc.includes('nublado')) {
-      return FiCloud;
-    }
-    if (desc.includes('sun') || desc.includes('clear') || desc.includes('sol')) {
-      return FiSun;
-    }
-    if (desc.includes('snow') || desc.includes('neve')) {
-      return FiCloudSnow;
-    }
-    if (desc.includes('mist') || desc.includes('névoa')) {
-      return FiCloud;
-    }
-    return FiSun; // Ícone padrão
-  };
-
-  const getWeatherColor = (description: string) => {
-    if (!description) return 'yellow.400';
-    const desc = description.toLowerCase();
-    if (desc.includes('rain') || desc.includes('storm') || desc.includes('chuva')) {
-      return 'blue.400';
-    }
-    if (desc.includes('cloud') || desc.includes('nublado')) {
-      return 'gray.400';
-    }
-    if (desc.includes('sun') || desc.includes('clear') || desc.includes('sol')) {
-      return 'yellow.400';
-    }
-    if (desc.includes('snow') || desc.includes('neve')) {
-      return 'blue.200';
-    }
-    return 'yellow.400'; // Cor padrão
-  };
-
-  // --- Funções auxiliares para UV ---
-
-
-  // --- Funções auxiliares para AQI ---
-
 
   return (
     <Box 
@@ -356,10 +309,7 @@ export const AppContent: React.FC<AppContentProps> = ({ API_URL }) => {
     >
       {/* Modern Header with Gradient */}
       <Box 
-        bgGradient={useColorModeValue(
-          'linear(to-r, brand.400, brand.600)', 
-          'linear(to-r, brand.600, brand.800)'
-        )}
+        bgGradient={headerGradient}
         py={4}
         boxShadow="sm"
       >
@@ -387,7 +337,6 @@ export const AppContent: React.FC<AppContentProps> = ({ API_URL }) => {
                 BETA
               </Badge>
             </Flex>
-            {/* ✅ Corrigido: Tooltip e IconButton usando o estado do ThemeContext */}
             <Tooltip 
               label={themeLabel}
               placement="bottom"
@@ -424,7 +373,6 @@ export const AppContent: React.FC<AppContentProps> = ({ API_URL }) => {
         
         {/* Main Content */}
         <Box>
-          {/* ✅ NOVA SEÇÃO: Informações Consolidadas da Cidade (Hero Box) */}
           <Box
             bg={useColorModeValue('gray.100', 'gray.700')}
             borderRadius="lg"
@@ -434,119 +382,72 @@ export const AppContent: React.FC<AppContentProps> = ({ API_URL }) => {
             maxW="2xl"
             mx="auto"
             borderWidth="1px"
-            borderColor={useColorModeValue('gray.300', 'gray.600')}
+            borderColor={borderColor}
           >
             <Flex direction="column" align="center">
-              {/* Linha 1: Localização */}
+              {/* Line 1: Localization */}
               <Flex align="center" gap={2} mb={2}>
-                <Icon as={FaMapMarkerAlt} color={useColorModeValue('gray.800', 'white')} boxSize={4} />
-                <Text fontSize="lg" fontWeight="bold" color={useColorModeValue('gray.800', 'white')}>
+                <Icon as={FaMapMarkerAlt} color={textColor} boxSize={4} />
+                <Text fontSize="sm" fontWeight="bold" color={textColor}>
                   {data.city}, {data.country}
                 </Text>
               </Flex>
 
-              {/* Linha 2: Ícone de clima + descrição + sensação térmica */}
-              <Flex align="center" gap={3} mb={3}>
-                <Icon 
-                  as={getWeatherIcon(weatherDescription)} 
-                  color={getWeatherColor(weatherDescription)} 
-                  boxSize={{ base: 8, md: 10 }}
-                />
-                <Flex direction="column" align="start">
-                  <Text fontSize="md" fontWeight="semibold" color={useColorModeValue('gray.800', 'white')}>
+              {/* Line 2: Temp and condition */}
+              <Flex align="center" gap={3} mb={2}>
+                <Text fontSize={{ base: '2xl', md: '3xl' }} fontWeight="bold" color={textColor}>
+                  {data.temperature.toFixed(1)}°C
+                </Text>
+                {data.weather?.description && (
+                  <Text fontSize="sm" color={subtitleColor}>
                     {conditionText}
                   </Text>
-                  {/* Sensação térmica - verificando se existe no objeto data */}
-                  {/* NOTA: feelslike_c não está no tipo IQVData padrão. Se estiver disponível via backend, descomente abaixo */}
-                  {/* {data.feelslike_c !== undefined && (
-                    <Text fontSize="sm" color={useColorModeValue('gray.600', 'gray.300')}>
-                      Sensação: {data.feelslike_c.toFixed(1)}°C
-                    </Text>
-                  )} */}
-                </Flex>
+                )}
               </Flex>
 
-              {/* Linha 3: UV e AQI como badges */}
-              <Flex justify="center" gap={4} mb={3} wrap="wrap">
-                {/* Índice UV */}
-                {/* NOTA: uv_index não está no tipo IQVData padrão. Se estiver disponível via backend, descomente abaixo */}
-                {/* {data.uv_index !== undefined && (
-                  <Badge 
-                    px={3} 
-                    py={1} 
-                    borderRadius="full" 
-                    fontWeight="medium"
-                    colorScheme={getUvColorScheme(data.uv_index)}
-                  >
-                    <Flex align="center" gap={1}>
-                      <Icon as={FaSun} boxSize={3} />
-                      <Text>UV: {data.uv_index} – {getUvLabel(data.uv_index)}</Text>
-                    </Flex>
-                  </Badge>
-                )} */}
-
-                {/* Qualidade do Ar (AQI) */}
-                {/* NOTA: aqi não está no tipo IQVData padrão. Se estiver disponível via backend, descomente abaixo */}
-                {/* {data.aqi?.us_epa_index !== undefined && (
-                  <Badge 
-                    px={3} 
-                    py={1} 
-                    borderRadius="full" 
-                    fontWeight="medium"
-                    colorScheme={getAqiColorScheme(data.aqi.us_epa_index)}
-                  >
-                    <Flex align="center" gap={1}>
-                      <Icon as={FaCloud} boxSize={3} />
-                      <Text>AQI: {data.aqi.us_epa_index} – {getAqiLabel(data.aqi.us_epa_index)}</Text>
-                    </Flex>
-                  </Badge>
-                )} */}
-              </Flex>
-
-              {/* Linha 4: População e Hora local */}
-              <Flex justify="center" align="center" gap={4} fontSize="sm">
-                {/* População */}
+              {/* Line 3: Pop, Coord, time */}
+              <Flex justify="center" align="center" wrap="wrap" gap={4} mb={2} fontSize="xs">
                 {data.population !== undefined && data.population !== null && (
                   <Flex align="center" gap={1}>
-                    <Icon as={FaUsers} color={useColorModeValue('blue.500', 'blue.300')} boxSize={3} />
-                    <Text color={useColorModeValue('gray.600', 'gray.300')}>
-                      {formatPopulation(data.population)} habitantes
-                    </Text>
+                    <Icon as={FaUsers} color={highlightColor} boxSize={3} />
+                    <Text color={subtitleColor}>{formatPopulation(data.population)}</Text>
                   </Flex>
                 )}
-                
-                {/* Hora local */}
+                {data.latitude !== undefined && data.latitude !== null && data.longitude !== undefined && data.longitude !== null && (
+                  <Flex align="center" gap={1}>
+                    <Icon as={FaMapMarkerAlt} color={highlightColor} boxSize={3} />
+                    <Text color={subtitleColor}>{formatCoordinates(data.latitude, data.longitude)}</Text>
+                  </Flex>
+                )}
                 {data.timestamp && (
                   <Flex align="center" gap={1}>
-                    <Icon as={FaClock} color={useColorModeValue('blue.500', 'blue.300')} boxSize={3} />
-                    <Text color={useColorModeValue('gray.600', 'gray.300')}>
-                      {formatLocalTime()}
-                    </Text>
+                    <Icon as={FaClock} color={highlightColor} boxSize={3} />
+                    <Text color={subtitleColor}>Updated: {formatLocalTime()}</Text>
                   </Flex>
                 )}
               </Flex>
             </Flex>
           </Box>
           
-          {/* Componentes existentes */}
+          {/* Act used comps */}
           <MetricsGrid data={data} />
-          <IQVBreakdown data={data} />
+          <QoLBreakdown data={data} />
           <ForecastSection 
             forecast={forecast} 
             // mlPrediction={mlPrediction}
           />
           <WeatherRadarMap data={data} />
           <CityComparison
-            comparisonCity={comparisonCity}
-            setComparisonCity={setComparisonCity}
-            comparisonData={comparisonData}
-            comparisonForecast={comparisonForecast}
-            fetchComparisonData={fetchComparisonData}
-            fetchSuggestions={fetchSuggestions}
-            showComparisonSuggestions={showComparisonSuggestions}
-            setShowComparisonSuggestions={setShowComparisonSuggestions}
-            comparisonSearchRef={comparisonSearchRef}
-          />
+          comparisonCity={comparisonCity}
+          setComparisonCity={setComparisonCity}
+          comparisonData={comparisonData}
+          comparisonForecast={comparisonForecast}
+          fetchComparisonData={fetchComparisonData}
+          fetchSuggestions={fetchSuggestions}
+          showComparisonSuggestions={showComparisonSuggestions}
+          setShowComparisonSuggestions={setShowComparisonSuggestions}
+          comparisonSearchRef={comparisonSearchRef}
+/>
         </Box>
       </Container>
     </Box>

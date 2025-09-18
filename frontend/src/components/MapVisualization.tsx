@@ -7,7 +7,7 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 interface CityData {
   longitude: number;
   latitude: number;
-  iqv: number;
+  QoL: number;
   city: string;
   country: string;
 }
@@ -105,9 +105,9 @@ export const MapVisualization: React.FC<MapVisualizationProps> = ({
           setMapLoaded(true);
 
           // Remove camada existente se houver
-          if (map.current!.getSource('city-iqv')) {
-            map.current!.removeLayer('iqv-heatmap');
-            map.current!.removeSource('city-iqv');
+          if (map.current!.getSource('city-QoL')) {
+            map.current!.removeLayer('QoL-heatmap');
+            map.current!.removeSource('city-QoL');
           }
 
           // Adiciona um marcador na cidade
@@ -117,7 +117,7 @@ export const MapVisualization: React.FC<MapVisualizationProps> = ({
               .setPopup(
                 new maplibregl.Popup().setHTML(
                   `<h3>${cityData.city}, ${cityData.country}</h3>
-                 <p>IQV: ${cityData.iqv.toFixed(2)}</p>`
+                 <p>QoL: ${cityData.QoL.toFixed(2)}</p>`
                 )
               )
               .addTo(map.current!);
@@ -125,7 +125,7 @@ export const MapVisualization: React.FC<MapVisualizationProps> = ({
 
           // Adiciona uma camada de heatmap
           if (cityData) {
-            map.current!.addSource('city-iqv', {
+            map.current!.addSource('city-QoL', {
               type: 'geojson',
               data: {
                 type: 'FeatureCollection',
@@ -133,7 +133,7 @@ export const MapVisualization: React.FC<MapVisualizationProps> = ({
                   {
                     type: 'Feature',
                     properties: {
-                      iqv: cityData.iqv,
+                      QoL: cityData.QoL,
                     },
                     geometry: {
                       type: 'Point',
@@ -145,15 +145,15 @@ export const MapVisualization: React.FC<MapVisualizationProps> = ({
             });
 
             map.current!.addLayer({
-              id: 'iqv-heatmap',
+              id: 'QoL-heatmap',
               type: 'heatmap',
-              source: 'city-iqv',
+              source: 'city-QoL',
               maxzoom: 15,
               paint: {
                 'heatmap-weight': [
                   'interpolate',
                   ['linear'],
-                  ['get', 'iqv'],
+                  ['get', 'QoL'],
                   0,
                   0,
                   10,
@@ -353,7 +353,7 @@ export const MapVisualization: React.FC<MapVisualizationProps> = ({
         }}
       >
         <div style={{ fontWeight: 'bold', marginBottom: '8px' }}>
-          Legenda do IQV
+          Legenda do QoL
         </div>
         <div style={{ display: 'flex', flexDirection: 'column' }}>
           <span

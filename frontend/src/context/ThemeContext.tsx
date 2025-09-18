@@ -1,6 +1,5 @@
-// frontend/src/context/ThemeContext.tsx
 import { createContext, useContext, useEffect, useState, useCallback } from 'react';
-import { useColorMode } from '@chakra-ui/react'; // Para tentar sincronizar
+import { useColorMode } from '@chakra-ui/react';
 
 type Theme = 'light' | 'dark';
 
@@ -12,16 +11,12 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
-  // Tenta usar o hook do Chakra primeiro
   const chakraColorMode = useColorMode();
   const [internalTheme, setInternalTheme] = useState<Theme>('dark');
-
-  // Determina o tema real (prioriza o do Chakra se disponível e consistente)
   const currentTheme: Theme = chakraColorMode?.colorMode === 'dark' || 
-                             chakraColorMode?.colorMode === 'light' ? 
-                             chakraColorMode.colorMode : internalTheme;
+                              chakraColorMode?.colorMode === 'light' ? 
+                              chakraColorMode.colorMode : internalTheme;
 
-  // Carrega o tema inicial
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme') as Theme | null;
     let initialTheme: Theme = 'light';
@@ -33,24 +28,19 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
     
     setInternalTheme(initialTheme);
     
-    // Se o Chakra estiver disponível, tenta sincronizar
     if (chakraColorMode && chakraColorMode.setColorMode) {
-       // Apenas define se for diferente para evitar loops
        if (chakraColorMode.colorMode !== initialTheme) {
          chakraColorMode.setColorMode(initialTheme);
        }
     } else {
-       // Fallback: define no DOM se Chakra não estiver pronto
        document.documentElement.setAttribute('data-theme', initialTheme);
     }
-  }, []); // Executa apenas uma vez na montagem
+  }, []);
 
-  // Atualiza o DOM e localStorage sempre que o tema interno muda
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', internalTheme);
     localStorage.setItem('theme', internalTheme);
     
-    // Se o Chakra estiver disponível, tenta sincronizar
     if (chakraColorMode && chakraColorMode.setColorMode) {
        if (chakraColorMode.colorMode !== internalTheme) {
          chakraColorMode.setColorMode(internalTheme);
@@ -61,9 +51,7 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
   const toggleTheme = useCallback(() => {
     setInternalTheme(prev => {
       const newTheme = prev === 'light' ? 'dark' : 'light';
-      // Se o Chakra estiver disponível, tenta sincronizar imediatamente
       if (chakraColorMode && chakraColorMode.toggleColorMode) {
-        // Verifica se o Chakra já está no modo correto
         if (chakraColorMode.colorMode !== newTheme) {
             chakraColorMode.toggleColorMode();
         }

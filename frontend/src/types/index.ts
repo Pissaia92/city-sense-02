@@ -2,13 +2,13 @@ export interface AqiDetails {
   us_epa_index?: number;
 }
 
-export interface IQVData {
+export interface QoLData {
   city: string;
   country: string;
   temperature: number;
   humidity: number;
   wind_speed: number;
-  iqv_components: {
+  QoL_components: {
     temperature: number;
     humidity: number;
     wind: number;

@@ -241,8 +241,8 @@ body.dark-mode .metric-label {
   color: #a0aec0;
 }
 
-/* IQV Breakdown */
-.iqv-breakdown {
+/* QoL Breakdown */
+.QoL-breakdown {
   background: white;
   border-radius: 12px;
   padding: 25px;
@@ -250,21 +250,21 @@ body.dark-mode .metric-label {
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
 }
 
-body.dark-mode .iqv-breakdown {
+body.dark-mode .QoL-breakdown {
   background: #2d3748;
 }
 
-.iqv-breakdown h3 {
+.QoL-breakdown h3 {
   margin-bottom: 20px;
   color: #2d3748;
   text-align: center;
 }
 
-body.dark-mode .iqv-breakdown h3 {
+body.dark-mode .QoL-breakdown h3 {
   color: #e2e8f0;
 }
 
-.iqv-components {
+.QoL-components {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 15px;

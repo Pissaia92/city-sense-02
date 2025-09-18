@@ -1,34 +1,33 @@
-
-interface IQVTipsProps {
+interface QoLTipsProps {
   data: any;
   darkMode?: boolean;
 }
 
-export const IQVTips = ({ data, darkMode = false }: IQVTipsProps) => {
+export const QoLTips = ({ data, darkMode = false }: QoLTipsProps) => {
   const tips = [
     {
-      condition: data.iqv_climate < 5,
+      condition: data.QoL_climate < 5,
       title: 'Extreme Forecast',
       description:
         'The temperature is distant from ideal. Consider adjusting your outdoor activities.',
       icon: '🌡️',
     },
     {
-      condition: data.iqv_humidity < 5,
+      condition: data.QoL_humidity < 5,
       title: 'Unfavorable Humidity',
       description:
         'Humidity is too high/low for ideal comfort. Stay hydrated and wear appropriate clothing.',
       icon: '💧',
     },
     {
-      condition: data.iqv_traffic < 5,
+      condition: data.QoL_traffic < 5,
       title: 'Heavy Traffic',
       description:
         'Heavy traffic is expected. Plan your trips in advance and consider alternative options.',
       icon: '🚦',
     },
     {
-      condition: data.iqv_trend < 5,
+      condition: data.QoL_trend < 5,
       title: 'Negative Trend',
       description:
         'The climate trend is deteriorating. Stay tuned for weather updates.',

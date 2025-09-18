@@ -4,23 +4,23 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 import type { ForecastPoint } from './Types/types';
 
 interface MapComponentProps {
-  iqvData: {
+  QoLData: {
     city: string;
-    iqv_overall: number;
+    QoL_overall: number;
     temperature: number;
     humidity: number;
   } | null;
 }
 
-const getIQVColor = (value: number) => {
+const getQoLColor = (value: number) => {
   if (value >= 8) return '#10B981';
   if (value >= 6) return '#F59E0B';
   return '#EF4444';
 };
 
-const MapComponent: React.FC<MapComponentProps> = ({ iqvData }) => {
+const MapComponent: React.FC<MapComponentProps> = ({ QoLData }) => {
   useEffect(() => {
-    if (!iqvData) return;
+    if (!QoLData) return;
 
     const map = new maplibregl.Map({
       container: 'map',
@@ -34,17 +34,17 @@ const MapComponent: React.FC<MapComponentProps> = ({ iqvData }) => {
       .setPopup(
         new maplibregl.Popup().setHTML(`
           <div style="width:200px">
-            <h3>${iqvData.city}</h3>
-            <p>IQV Geral: <strong style="color:${getIQVColor(iqvData.iqv_overall)}">${iqvData.iqv_overall.toFixed(2)}</strong></p>
-            <p>Temperatura: ${iqvData.temperature.toFixed(1)}°C</p>
-            <p>Umidade: ${iqvData.humidity}%</p>
+            <h3>${QoLData.city}</h3>
+            <p>QoL Geral: <strong style="color:${getQoLColor(QoLData.QoL_overall)}">${QoLData.QoL_overall.toFixed(2)}</strong></p>
+            <p>Temperatura: ${QoLData.temperature.toFixed(1)}°C</p>
+            <p>Umidade: ${QoLData.humidity}%</p>
           </div>
         `)
       )
       .addTo(map);
 
     return () => map.remove();
-  }, [iqvData]);
+  }, [QoLData]);
 
   return (
     <div

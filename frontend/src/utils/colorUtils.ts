@@ -1,6 +1,6 @@
-import type { IQVData } from '../components/Types/types';
+import type { QoLData } from '../components/Types/types';
 
-export const getIQVColor = (value: number) => {
+export const getQoLColor = (value: number) => {
   if (value >= 8)
     return {
       bg: 'bg-sky-50',
@@ -23,10 +23,10 @@ export const getIQVColor = (value: number) => {
   };
 };
 
-export const getIQVStatus = (iqv: number) => {
-  return iqv >= 7
+export const getQoLStatus = (QoL: number) => {
+  return QoL >= 7
     ? 'Condições excelentes'
-    : iqv >= 5
+    : QoL >= 5
       ? 'Condições aceitáveis'
       : 'Condições críticas';
 };

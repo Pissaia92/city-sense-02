@@ -69,11 +69,11 @@ def process_weatherapi_data(raw_data: Dict[str, Any]) -> Dict[str, Any]:
         wind_speed = wind_speed_mph * 0.44704  # Convert to m/s
         weather_desc = current["condition"]["text"]
 
-        # IQV Components
-        temp_iqv = max(0, min(10, (30 - abs(temperature - 22)) / 3))
-        humidity_iqv = max(0, min(10, (100 - humidity) / 5))
-        wind_iqv = max(0, min(10, (15 - wind_speed) / 1.5))
-        overall_iqv = (temp_iqv + humidity_iqv + wind_iqv) / 3
+        # QoL Components
+        temp_QoL = max(0, min(10, (30 - abs(temperature - 22)) / 3))
+        humidity_QoL = max(0, min(10, (100 - humidity) / 5))
+        wind_QoL = max(0, min(10, (15 - wind_speed) / 1.5))
+        overall_QoL = (temp_QoL + humidity_QoL + wind_QoL) / 3
 
         # Forecast (5 days)
         processed_forecast = []
@@ -94,11 +94,11 @@ def process_weatherapi_data(raw_data: Dict[str, Any]) -> Dict[str, Any]:
             "temperature": round(temperature, 2),
             "humidity": humidity,
             "wind_speed": round(wind_speed, 2),
-            "iqv_components": {
-                "temperature": round(temp_iqv, 2),
-                "humidity": round(humidity_iqv, 2),
-                "wind": round(wind_iqv, 2),
-                "overall": round(overall_iqv, 2),
+            "QoL_components": {
+                "temperature": round(temp_QoL, 2),
+                "humidity": round(humidity_QoL, 2),
+                "wind": round(wind_QoL, 2),
+                "overall": round(overall_QoL, 2),
             },
             "timestamp": datetime.utcnow().isoformat() + "Z",
             "latitude": latitude,
@@ -210,8 +210,8 @@ async def fetch_enriched_city_data(city_name: str, country_code: str) -> Dict[st
     return enriched_data
 
 
-async def get_iqv_data(city: str) -> Dict[str, Any]:
-    """Main function to fetch IQV data using WeatherAPI and enriched data."""
+async def get_QoL_data(city: str) -> Dict[str, Any]:
+    """Main function to fetch QoL data using WeatherAPI and enriched data."""
     try:
         # 1. Get raw data from WeatherAPI
         raw_weather_data = await get_current_weather_and_forecast(city)
@@ -297,4 +297,4 @@ async def get_iqv_data(city: str) -> Dict[str, Any]:
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error processing IQV data: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error processing QoL data: {str(e)}")

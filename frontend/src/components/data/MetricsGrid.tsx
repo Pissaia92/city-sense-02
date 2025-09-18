@@ -10,13 +10,13 @@ import {
   Progress
 } from '@chakra-ui/react';
 
-interface IQVData {
+interface QoLData {
   city: string;
   country: string;
   temperature: number;
   humidity: number;
   wind_speed: number;
-  iqv_components: {
+  QoL_components: {
     temperature: number;
     humidity: number;
     wind: number;
@@ -32,7 +32,7 @@ interface IQVData {
 }
 
 interface MetricsGridProps {
-  data: IQVData; // prop data
+  data: QoLData; // prop data
 }
 
 export const MetricsGrid: React.FC<MetricsGridProps> = ({ data }) => {
@@ -42,7 +42,7 @@ export const MetricsGrid: React.FC<MetricsGridProps> = ({ data }) => {
   const subtitleColor = useColorModeValue('gray.600', 'gray.400');
   
   // color funct
-  const getIqvColor = (value: number) => {
+  const getQoLColor = (value: number) => {
     if (value >= 80) return 'green.400';
     if (value >= 60) return 'yellow.400';
     if (value >= 40) return 'orange.400';
@@ -106,11 +106,11 @@ export const MetricsGrid: React.FC<MetricsGridProps> = ({ data }) => {
       progress: Math.min(100, (data.wind_speed || 0) * 10)
     },
     {
-      title: "IQV Score",
-      value: data.iqv_components?.overall?.toFixed(1) || 'N/A',
-      color: getIqvColor(data.iqv_components?.overall || 0),
+      title: "QoL Score",
+      value: data.QoL_components?.overall?.toFixed(1) || 'N/A',
+      color: getQoLColor(data.QoL_components?.overall || 0),
       icon: "🎯",
-      progress: data.iqv_components?.overall || 0
+      progress: data.QoL_components?.overall || 0
     }
   ];
 

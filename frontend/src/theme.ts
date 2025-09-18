@@ -31,7 +31,7 @@ snow: '#bbdefb', // Light blue for snow
 wind: '#81c784', // Green for wind
 },
 // Colors for the Quality of Life Index (QLI)
-iqv: {
+QoL: {
 excellent: '#4caf50', // Green for excellent
 good: '#8bc34a', // Light green for good
 fair: '#ffeb3b', // Yellow for fair

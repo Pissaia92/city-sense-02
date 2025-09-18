@@ -12,13 +12,13 @@ import {
   Tooltip
 } from '@chakra-ui/react';
 import { FaThermometer, FaTint, FaWind, FaSun, FaSmog, FaChartLine, FaCloudRain, FaInfoCircle } from 'react-icons/fa';
-import { IQVData } from '../../types';
+import { QoLData } from '../../types';
 
-interface IQVBreakdownProps {
-  data: IQVData;
+interface QoLBreakdownProps {
+  data: QoLData;
 }
 
-export const IQVBreakdown: React.FC<IQVBreakdownProps> = ({ data }) => {
+export const QoLBreakdown: React.FC<QoLBreakdownProps> = ({ data }) => {
   // light/dark mode colors reactions
   const bgColor = useColorModeValue('white', 'gray.800');
   const textColor = useColorModeValue('gray.800', 'white');
@@ -104,7 +104,7 @@ export const IQVBreakdown: React.FC<IQVBreakdownProps> = ({ data }) => {
   const tempComfort = Math.max(0, Math.min(10, (30 - Math.abs(data.temperature - 22)) / 3));
   const humidityLevel = Math.max(0, Math.min(10, (100 - data.humidity) / 5));
   const windConditions = Math.max(0, Math.min(10, (15 - data.wind_speed) / 1.5));
-  const overallIQV = (tempComfort + humidityLevel + windConditions) / 3;
+  const overallQoL = (tempComfort + humidityLevel + windConditions) / 3;
 
   return (
     <Card 
@@ -346,7 +346,7 @@ export const IQVBreakdown: React.FC<IQVBreakdownProps> = ({ data }) => {
             </Text>
           </Card>
 
-          {/* Overall IQV Score */}
+          {/* Overall QoL Score */}
           <Card 
             p={4} 
             borderRadius="lg" 
@@ -359,11 +359,11 @@ export const IQVBreakdown: React.FC<IQVBreakdownProps> = ({ data }) => {
               <Flex align="center" gap={2}>
                 <Icon as={FaChartLine} color={useColorModeValue('teal.600', 'teal.300')} boxSize={5} />
                 <Text fontWeight="bold" color={useColorModeValue('teal.800', 'teal.200')}>
-                  Overall IQV Score
+                  Overall QoL Score
                 </Text>
               </Flex>
               <Text fontSize="3xl" fontWeight="bold" color={useColorModeValue('teal.700', 'teal.300')}>
-                {overallIQV.toFixed(1)}
+                {overallQoL.toFixed(1)}
               </Text>
             </Flex>
           </Card>

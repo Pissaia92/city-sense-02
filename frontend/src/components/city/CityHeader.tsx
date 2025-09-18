@@ -1,10 +1,10 @@
 import React from 'react';
 import { Box, Flex, Text, Icon, useColorModeValue } from '@chakra-ui/react';
 import { FaMapMarkerAlt, FaUsers, FaClock, FaSun, FaCloud, FaCloudRain } from 'react-icons/fa';
-import { IQVData } from '../../types';
+import { QoLData } from '../../types';
 
 interface CityHeaderProps {
-  data: IQVData;
+  data: QoLData;
 }
 
 export const CityHeader: React.FC<CityHeaderProps> = ({ data }) => {

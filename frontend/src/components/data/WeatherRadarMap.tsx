@@ -11,10 +11,10 @@ import {
   Badge
 } from '@chakra-ui/react';
 import { FiMap } from 'react-icons/fi';
-import { IQVData } from '../../types'
+import { QoLData } from '../../types'
 
 interface WeatherRadarMapProps {
-  data: IQVData;
+  data: QoLData;
 }
 
 export const WeatherRadarMap: React.FC<WeatherRadarMapProps> = ({ data }) => {

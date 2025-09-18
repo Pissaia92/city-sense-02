@@ -14,9 +14,9 @@ async def health_check():
         "documentation": "/docs",
         "health": "/api/health",
         "endpoints": [
-            "/api/iqv?city=São%20Paulo",
+            "/api/QoL?city=São%20Paulo",
             "/api/forecast?city=São%20Paulo",
-            "/api/predict/iqv?city=São%20Paulo"
+            "/api/predict/QoL?city=São%20Paulo"
         ]
     }
 

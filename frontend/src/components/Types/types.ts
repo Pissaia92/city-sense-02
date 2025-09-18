@@ -6,7 +6,7 @@ export interface ForecastPoint {
   maxTemperature: number;
   icon: string;
 }
-export interface IQVData {
+export interface QoLData {
   description: string;
-  iqv_trend: number;
+  QoL_trend: number;
 }

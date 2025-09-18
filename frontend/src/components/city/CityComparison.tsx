@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Box, 
   Flex, 
@@ -16,45 +16,26 @@ import {
   StatLabel,
   StatNumber,
   StatHelpText,
-  Divider,
   Icon,
-  Skeleton,
   Alert,
   AlertIcon,
-  AlertDescription
+  AlertDescription,
+  Spinner
 } from '@chakra-ui/react';
-import { FiSearch, FiMapPin, FiThermometer, FiDroplet, FiWind } from 'react-icons/fi';
+import { FiSearch, FiMapPin, FiThermometer, FiWind, FiDroplet } from 'react-icons/fi';
+import { QoLData } from '../../types';
 
-interface IQVData {
-  city: string;
-  country: string;
-  temperature: number;
-  humidity: number;
-  wind_speed: number;
-  iqv_components: {
-    temperature: number;
-    humidity: number;
-    wind: number;
-    overall: number;
-  };
-  timestamp: string;
-  latitude: number;
-  longitude: number;
-  weather?: {
-    description: string;
-  };
-  description?: string;
-}
-
+// define component expected props
 interface CityComparisonProps {
   comparisonCity: string;
-  setComparisonCity: (city: string) => void;
-  comparisonData: IQVData | null;
-  comparisonForecast: any;
-  fetchComparisonData: (city: string) => void;
+  setComparisonCity: React.Dispatch<React.SetStateAction<string>>;
+  comparisonData: QoLData | null;
+  comparisonForecast: any[] | null;
+  fetchComparisonData: (cityName: string) => Promise<void>;
   fetchSuggestions: (query: string) => Promise<string[]>;
+  // Statess and setters passed as props
   showComparisonSuggestions: boolean;
-  setShowComparisonSuggestions: (show: boolean) => void;
+  setShowComparisonSuggestions: React.Dispatch<React.SetStateAction<boolean>>;
   comparisonSearchRef: React.RefObject<HTMLDivElement>;
 }
 
@@ -67,9 +48,9 @@ export const CityComparison: React.FC<CityComparisonProps> = ({
   fetchSuggestions,
   showComparisonSuggestions,
   setShowComparisonSuggestions,
-  comparisonSearchRef
+  comparisonSearchRef,
 }) => {
-  const [comparisonInput, setComparisonInput] = useState('');
+  const [comparisonInput, setComparisonInput] = useState(comparisonCity);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
@@ -80,26 +61,36 @@ export const CityComparison: React.FC<CityComparisonProps> = ({
   const textColor = useColorModeValue('gray.800', 'white');
   const subtitleColor = useColorModeValue('gray.600', 'gray.400');
   const inputBg = useColorModeValue('white', 'gray.700');
+  const suggestionItemHoverBg = useColorModeValue('gray.100', 'gray.700');
+
+  // Update input when comparisonCity changes
+  useEffect(() => {
+    setComparisonInput(comparisonCity);
+  }, [comparisonCity]);
 
   // Handle input change with debounced suggestions
   const handleInputChange = async (value: string) => {
     setComparisonInput(value);
+    setComparisonCity(value);
     setShowComparisonSuggestions(true);
     setError(null);
     
     if (value.trim()) {
       setLoadingSuggestions(true);
       try {
+        // Call fetchSuggestions as prop
         const results = await fetchSuggestions(value);
         setSuggestions(results);
       } catch (err) {
         console.error('Error fetching suggestions:', err);
+        setError('Failed to load suggestions.');
         setSuggestions([]);
       } finally {
         setLoadingSuggestions(false);
       }
     } else {
       setSuggestions([]);
+      setShowComparisonSuggestions(false);
     }
   };
 
@@ -110,6 +101,7 @@ export const CityComparison: React.FC<CityComparisonProps> = ({
       setIsSearching(true);
       setError(null);
       try {
+        // call fetchComparisonData as prop
         await fetchComparisonData(comparisonInput);
       } catch (err) {
         setError('Failed to fetch comparison data. Please try again.');
@@ -124,6 +116,7 @@ export const CityComparison: React.FC<CityComparisonProps> = ({
   // Handle suggestion click
   const handleSuggestionClick = (suggestion: string) => {
     setComparisonInput(suggestion);
+    setComparisonCity(suggestion);
     fetchComparisonData(suggestion);
     setShowComparisonSuggestions(false);
   };
@@ -143,7 +136,7 @@ export const CityComparison: React.FC<CityComparisonProps> = ({
           City Comparison
         </Heading>
         
-        <Box ref={comparisonSearchRef} mb={6}>
+        <Box ref={comparisonSearchRef} mb={6} position="relative">
           <form onSubmit={handleComparisonSearch}>
             <InputGroup size="lg">
               <Input
@@ -176,6 +169,48 @@ export const CityComparison: React.FC<CityComparisonProps> = ({
             </InputGroup>
           </form>
           
+          {/* Suggestions Dropdown  */}
+          {showComparisonSuggestions && suggestions.length > 0 && (
+            <Card 
+              position="absolute" 
+              bg={bgColor}
+              border="1px"
+              borderColor={borderColor}
+              borderRadius="lg"
+              boxShadow="md"
+              zIndex={1000}
+              w="100%"
+              maxW="500px"
+              mt={2}
+            >
+              <CardBody p={0}>
+                {loadingSuggestions ? (
+                  <Flex p={3} justify="center">
+                    <Spinner size="sm" color="blue.500" />
+                    <Text ml={2} color={subtitleColor}>Loading suggestions...</Text>
+                  </Flex>
+                ) : (
+                  suggestions.map((suggestion, index) => (
+                    <Box
+                      key={`${suggestion}-${index}`} // Chave mais robusta
+                      p={3}
+                      cursor="pointer"
+                      _hover={{ bg: suggestionItemHoverBg }}
+                      borderBottom={index < suggestions.length - 1 ? "1px" : "none"}
+                      borderColor={borderColor}
+                      onClick={() => handleSuggestionClick(suggestion)}
+                    >
+                      <Flex align="center">
+                        <Icon as={FiMapPin} color="gray.400" mr={2} />
+                        <Text color={textColor}>{suggestion}</Text>
+                      </Flex>
+                    </Box>
+                  ))
+                )}
+              </CardBody>
+            </Card>
+          )}
+
           {error && (
             <Alert status="error" borderRadius="lg" mt={3}>
               <AlertIcon />
@@ -184,46 +219,7 @@ export const CityComparison: React.FC<CityComparisonProps> = ({
           )}
         </Box>
         
-        {showComparisonSuggestions && suggestions.length > 0 && (
-          <Card 
-            position="absolute" 
-            bg={bgColor}
-            border="1px"
-            borderColor={borderColor}
-            borderRadius="lg"
-            boxShadow="md"
-            zIndex={1000}
-            w="100%"
-            maxW="500px"
-            mt={2}
-          >
-            <CardBody p={0}>
-              {loadingSuggestions ? (
-                <Box p={3} textAlign="center">
-                  <Text color={subtitleColor}>Loading suggestions...</Text>
-                </Box>
-              ) : (
-                suggestions.map((suggestion, index) => (
-                  <Box
-                    key={index}
-                    p={3}
-                    cursor="pointer"
-                    _hover={{ bg: useColorModeValue('gray.100', 'gray.700') }}
-                    borderBottom={index < suggestions.length - 1 ? "1px" : "none"}
-                    borderColor={borderColor}
-                    onClick={() => handleSuggestionClick(suggestion)}
-                  >
-                    <Flex align="center">
-                      <Icon as={FiMapPin} color="gray.400" mr={2} />
-                      <Text color={textColor}>{suggestion}</Text>
-                    </Flex>
-                  </Box>
-                ))
-              )}
-            </CardBody>
-          </Card>
-        )}
-        
+        {/* Results */}
         {comparisonData && (
           <Box>
             <Heading size="sm" mb={4} color={textColor} textAlign="center">
@@ -231,6 +227,7 @@ export const CityComparison: React.FC<CityComparisonProps> = ({
             </Heading>
             
             <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
+              {/* compared city data */}
               <Card 
                 bg={useColorModeValue('blue.50', 'blue.900')}
                 border="1px"
@@ -259,9 +256,36 @@ export const CityComparison: React.FC<CityComparisonProps> = ({
                       Feels like {comparisonData.temperature?.toFixed(1) || 'N/A'}°C
                     </StatHelpText>
                   </Stat>
+
+                  <Flex mt={4} gap={4}>
+                    <Stat>
+                      <StatLabel color={useColorModeValue('blue.700', 'blue.300')}>
+                        <Icon as={FiDroplet} mr={1} />
+                        Humidity
+                      </StatLabel>
+                      <StatNumber 
+                        color={useColorModeValue('blue.800', 'blue.200')}
+                      >
+                        {comparisonData.humidity || 'N/A'}%
+                      </StatNumber>
+                    </Stat>
+                    
+                    <Stat>
+                      <StatLabel color={useColorModeValue('blue.700', 'blue.300')}>
+                        <Icon as={FiWind} mr={1} />
+                        Wind
+                      </StatLabel>
+                      <StatNumber 
+                        color={useColorModeValue('blue.800', 'blue.200')}
+                      >
+                        {comparisonData.wind_speed?.toFixed(1) || 'N/A'} m/s
+                      </StatNumber>
+                    </Stat>
+                  </Flex>
                 </CardBody>
               </Card>
               
+              {/* compared city data */}
               <Card 
                 bg={useColorModeValue('green.50', 'green.900')}
                 border="1px"
@@ -271,7 +295,7 @@ export const CityComparison: React.FC<CityComparisonProps> = ({
                   <Flex align="center" mb={3}>
                     <Icon as={FiThermometer} color="green.500" boxSize={5} mr={2} />
                     <Text fontWeight="bold" color={useColorModeValue('green.800', 'green.200')}>
-                      IQV Score
+                      QoL Score
                     </Text>
                   </Flex>
                   
@@ -283,29 +307,69 @@ export const CityComparison: React.FC<CityComparisonProps> = ({
                       color={useColorModeValue('green.800', 'green.200')}
                       fontSize="2xl"
                     >
-                      {comparisonData.iqv_components?.overall?.toFixed(1) || 'N/A'}
+                      {comparisonData.QoL_components?.overall?.toFixed(1) || 'N/A'}
                     </StatNumber>
                     <StatHelpText color={useColorModeValue('green.600', 'green.400')}>
                       Overall life quality score
                     </StatHelpText>
                   </Stat>
+
+                  <Flex mt={4} gap={4}>
+                    <Stat>
+                      <StatLabel color={useColorModeValue('green.700', 'green.300')}>
+                        Temp
+                      </StatLabel>
+                      <StatNumber 
+                        color={useColorModeValue('green.800', 'green.200')}
+                      >
+                        {comparisonData.QoL_components?.temperature?.toFixed(1) || 'N/A'}
+                      </StatNumber>
+                    </Stat>
+                    
+                    <Stat>
+                      <StatLabel color={useColorModeValue('green.700', 'green.300')}>
+                        Humidity
+                      </StatLabel>
+                      <StatNumber 
+                        color={useColorModeValue('green.800', 'green.200')}
+                      >
+                        {comparisonData.QoL_components?.humidity?.toFixed(1) || 'N/A'}
+                      </StatNumber>
+                    </Stat>
+                    
+                    <Stat>
+                      <StatLabel color={useColorModeValue('green.700', 'green.300')}>
+                        Wind
+                      </StatLabel>
+                      <StatNumber 
+                        color={useColorModeValue('green.800', 'green.200')}
+                      >
+                        {comparisonData.QoL_components?.wind?.toFixed(1) || 'N/A'}
+                      </StatNumber>
+                    </Stat>
+                  </Flex>
                 </CardBody>
               </Card>
             </SimpleGrid>
             
-            {comparisonForecast && (
+            {/* forecast if available */}
+            {comparisonForecast && comparisonForecast.length > 0 && (
               <Box mt={6}>
                 <Heading size="sm" mb={4} color={textColor}>
                   Forecast Comparison
                 </Heading>
                 <Text color={subtitleColor} fontSize="sm">
-                  Forecast data for {comparisonData.city} would be displayed here
+                  Forecast data for {comparisonData.city}:
+                </Text>
+                <Text mt={2} fontSize="sm" color={subtitleColor}>
+                  (Detailed forecast comparison would be implemented here)
                 </Text>
               </Box>
             )}
           </Box>
         )}
         
+        {/* no data msg */}
         {!comparisonData && comparisonInput && !isSearching && (
           <Text color={subtitleColor} textAlign="center">
             Enter a city name above to compare with {comparisonInput}

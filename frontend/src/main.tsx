@@ -1,41 +1,28 @@
-// frontend/src/main.tsx
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import {
-  ChakraProvider,
-  ColorModeScript,
-  extendTheme,
-} from '@chakra-ui/react';
+import { ChakraProvider } from '@chakra-ui/react';
 import { ThemeProvider } from './context/ThemeContext';
 import App from './App';
-import theme from './theme';
 
-// Determine o modo inicial com base no localStorage ou preferência do sistema
-const initialColorMode = (() => {
-  const savedTheme = localStorage.getItem('theme');
-  if (savedTheme === 'light' || savedTheme === 'dark') {
-    return savedTheme;
-  }
-  // Fallback para preferência do sistema ou 'light'
-  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-})();
-
-// Extenda o tema com o modo inicial correto
-const customTheme = extendTheme({
-  ...theme,
-  config: {
-    initialColorMode: initialColorMode, // Usa o valor calculado
-    useSystemColorMode: false,
-  },
-});
-
-ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
+const AppWithProviders = () => {
+  return (
     <ThemeProvider>
-      <ColorModeScript initialColorMode={customTheme.config.initialColorMode} />
-      <ChakraProvider theme={customTheme}>
+      <ChakraProvider>
         <App />
       </ChakraProvider>
     </ThemeProvider>
-  </React.StrictMode>,
+  );
+};
+
+const RootWrapper = () => (
+  <React.StrictMode>
+    <AppWithProviders />
+  </React.StrictMode>
 );
+
+const rootElement = document.getElementById('root');
+if (rootElement) {
+  ReactDOM.createRoot(rootElement).render(<RootWrapper />);
+} else {
+  console.error("Failed to find the root element");
+}

@@ -12,13 +12,13 @@
 // } from '@chakra-ui/react';
 // import { FiMapPin, FiNavigation } from 'react-icons/fi';
 
-// interface IQVData {
+// interface QoLData {
 //   city: string;
 //   country: string;
 //   temperature: number;
 //   humidity: number;
 //   wind_speed: number;
-//   iqv_components: {
+//   QoL_components: {
 //     temperature: number;
 //     humidity: number;
 //     wind: number;
@@ -34,7 +34,7 @@
 // }
 
 // interface CityMapProps {
-//   data: IQVData; // Adicionando a prop data
+//   data: QoLData; // Adicionando a prop data
 // }
 
 // export const CityMap: React.FC<CityMapProps> = ({ data }) => {
